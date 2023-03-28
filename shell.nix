@@ -8,7 +8,6 @@ let
     { };
 
   compile = pkgs.writeShellScriptBin "compile" ''
-    forge build
     hardhat compile --force
   '';
 
@@ -42,6 +41,7 @@ let
 
   ci-test = pkgs.writeShellScriptBin "ci-test" ''
     npx mustache config/localhost.json subgraph.template.yaml subgraph.yaml
+    codegen
     npx hardhat test
   '';
 
@@ -82,7 +82,6 @@ let
     mkdir -p schema && cp -r node_modules/@rainprotocol/rain-protocol/schema .
     mkdir -p utils && cp -r node_modules/@rainprotocol/rain-protocol/utils .
     cp node_modules/@rainprotocol/rain-protocol/foundry.toml .
-    install-submodules
     compile
     copy-abis
   '';
@@ -96,6 +95,7 @@ pkgs.stdenv.mkDerivation {
   pkgs.nodejs-16_x
   ci-test
   compile
+  codegen
   copy-abis
   docker-up
   docker-down
