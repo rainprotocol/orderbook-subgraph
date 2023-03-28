@@ -8,6 +8,7 @@ let
     { };
 
   compile = pkgs.writeShellScriptBin "compile" ''
+    forge build
     hardhat compile --force
   '';
 
