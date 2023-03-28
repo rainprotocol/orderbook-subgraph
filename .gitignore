@@ -1,0 +1,26 @@
+# subgraph
+build
+generated
+abis
+
+# foundry
+foundry.toml
+cache_forge
+out
+
+# npm
+node_modules
+
+# hardhat
+typechain
+artifacts
+cache
+
+# rainprotocol
+contracts
+utils
+schema
+
+
+.vscode
+docker/data

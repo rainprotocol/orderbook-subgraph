@@ -1,0 +1,4 @@
+type OrderBook @entity{
+    id: Bytes!
+    deployer: Bytes!
+}
