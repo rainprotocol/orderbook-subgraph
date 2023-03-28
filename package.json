@@ -32,15 +32,15 @@
     "@nomiclabs/hardhat-waffle": "^2.0.5",
     "@typechain/hardhat": "^6.1.5",
     "@types/mocha": "^10.0.1",
+    "@types/string-math": "=1.0.0",
     "apollo-fetch": "^0.7.0",
     "assert": "^2.0.0",
+    "cbor": "=8.1.0",
     "dotenv": "^16.0.3",
+    "rainlang": "rainprotocol/rainlang#58a5deee3e7d28058c0a7be8d6e8e51f9021326e",
+    "string-math": "=1.2.2",
     "ts-node": "^10.9.1",
     "typechain": "^8.1.1",
-    "typescript": "^5.0.2",
-    "@types/string-math": "=1.0.0",
-    "string-math": "=1.2.2",
-    "rainlang": "rainprotocol/rainlang#58a5deee3e7d28058c0a7be8d6e8e51f9021326e",
-    "cbor": "=8.1.0"
+    "typescript": "^5.0.2"
   }
 }

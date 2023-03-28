@@ -42,6 +42,7 @@ let
 
   ci-test = pkgs.writeShellScriptBin "ci-test" ''
     npx mustache config/localhost.json subgraph.template.yaml subgraph.yaml
+    codegen
     npx hardhat test
   '';
 
@@ -96,6 +97,7 @@ pkgs.stdenv.mkDerivation {
   pkgs.nodejs-16_x
   ci-test
   compile
+  codegen
   copy-abis
   docker-up
   docker-down
