@@ -82,6 +82,7 @@ let
     mkdir -p schema && cp -r node_modules/@rainprotocol/rain-protocol/schema .
     mkdir -p utils && cp -r node_modules/@rainprotocol/rain-protocol/utils .
     cp node_modules/@rainprotocol/rain-protocol/foundry.toml .
+    install-submodules
     compile
     copy-abis
   '';
