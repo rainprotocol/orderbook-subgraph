@@ -20,8 +20,9 @@
     "@graphprotocol/graph-cli": "^0.35.0",
     "@graphprotocol/graph-ts": "^0.28.1",
     "@openzeppelin/contracts-upgradeable": "=4.8.2",
-    "@prb/math": "^3.3.1",
     "@rainprotocol/rain-protocol": "git+https://github.com/rainprotocol/rain-protocol.git#941e8249b70cea8cc1f0abbef16d7f6c3f9cf32e",
+    "@rainprotocol/assemblyscript-cbor": "git+https://github.com/rainprotocol/assemblyscript-cbor.git#03142dcf5de7e796abf325df09b15090483daa00",
+    "@prb/math": "^3.3.1",
     "0xsequence": "^0.39.0",
     "hardhat": "^2.13.0",
     "mustache": "^3.2.1"

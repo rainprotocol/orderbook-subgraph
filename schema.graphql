@@ -2,12 +2,13 @@ type OrderBook @entity {
   id: Bytes!
   deployer: Bytes!
   "The RainMetaV1 decode information"
-  meta: RainMetaV1! # Use the CBOR AS library to decode the meta emited by the OB
+  meta: [RainMetaV1!] @derivedFrom(field: "orderBook") # Use the CBOR AS library to decode the meta emited by the OB
 }
 
 type RainMetaV1 @entity {
   "Hash of the meta emitted by the contract"
-  id: ID! # Hash of the meta emitted by the contract. Including the MagicNumber.
+  id: Bytes! # Hash of the meta emitted by the contract. Including the MagicNumber.
+  orderBook: OrderBook!
   "Original meta bytes emitted from the contract"
   metaBytes: Bytes! # Original meta bytes emitted from the contract
   "The meta content V1 decoded from the meta bytes emitted"
@@ -18,7 +19,7 @@ type MetaContentV1 @entity {
   "The hash of the Map Rain Meta document or CBOR Item"
   id: ID! # Hash of the whole stringify data.
   "The payload present on the index 0 of the Rain meta Document"
-  payload: Bytes!
+  payload: String!
   "The magic number that is used to track the payload"
   magicNumber: BigInt!
   "The header name info for Content-Type"
@@ -42,7 +43,7 @@ type Order @entity {
   transactionHash: Bytes!
 
   "The address that added the order"
-  owner: Bytes!
+  owner: Account!
 
   "The IInterpreter address that is used to add the order"
   interpreter: Bytes!
@@ -56,20 +57,20 @@ type Order @entity {
   "The address to the rain expression for the Order"
   expression: Bytes!
 
-  "Whether the order is active or deactive"
+  "Whether the order is active or inactive"
   orderActive: Boolean!
 
   "Flag that check if there is a handle_IO entrypoint to run. If false the order book MAY skip calling the interpreter to save gas"
   handleIO: Boolean!
 
-  "The RainMetaV1 decode information Rain `MetaV1` when the order is placed so can be used by offchain processes."
-  meta: RainMetaV1!
+  # "The RainMetaV1 decode information Rain `MetaV1` when the order is placed so can be used by offChain processes."
+  # meta: RainMetaV1!
 
   "validInputs"
-  validInputs: [IO!]
+  validInputs: [IO!] @derivedFrom(field: "order")
 
   "validOutputs"
-  validOutputs: [IO!]
+  validOutputs: [IO!] @derivedFrom(field: "order")
 
   "Timestamp when the order was added"
   timestamp: BigInt!
@@ -78,10 +79,10 @@ type Order @entity {
 # Created with AddOrder
 type IO @entity {
   id: ID!
-  index: BigInt!
   token: ERC20!
+  decimals: Int!
   vault: Vault!
-  tokenVault: TokenVault!
+  order: Order!
 }
 
 # Created and updated whenever an AddOrder event occurs
@@ -89,23 +90,23 @@ type IO @entity {
 type Vault @entity {
   id: ID! #{vaultId}-{owner}
   "The owner of this Vault"
-  owner: Bytes!
+  owner: Account!
 
   "Tokens in this Vault"
-  tokenVaults: [TokenVault!]
+  tokenVaults: [TokenVault!] @derivedFrom(field: "vault")
 
   "Deposits into this Vault"
-  deposits: [VaultDeposit!] # add whenever a Deposit event occurs for this {vaultId}-{owner}
+  deposits: [VaultDeposit!] @derivedFrom(field: "vault")# add whenever a Deposit event occurs for this {vaultId}-{owner}
   "Withdrawals from this Vault"
-  withdraws: [VaultWithdraw!] # add whenver a Withdraw event occurs for this {vaultId}-{owner}
+  withdraws: [VaultWithdraw!] @derivedFrom(field: "vault")# add whenver a Withdraw event occurs for this {vaultId}-{owner}
 }
 
 type TokenVault @entity {
   id: ID! #{vaultId}-{owner}-{token}
   "The owner of this Vault"
-  owner: Bytes! # From Deposit.sender / Withdraw.sender
+  owner: Account! # From Deposit.sender / Withdraw.sender
   "The id of this vault"
-  vaultId: BigInt!
+  vault: Vault!
 
   "The token that has a balance for this vault and owner."
   token: ERC20!
@@ -136,9 +137,9 @@ type TokenVault @entity {
 
 # Created for every Deposit event
 type VaultDeposit @entity {
-  id: ID! # use txhash of the event
+  id: Bytes! # use txhash of the event
   "The transaction sender of this deposit"
-  sender: Bytes! # Deposit.sender
+  sender: Account! # Deposit.sender
   "The token that was deposited"
   token: ERC20! # Deposit.config.token
   "The vaultId that was deposited into"
@@ -153,9 +154,9 @@ type VaultDeposit @entity {
 
 # Created for every Withdraw event
 type VaultWithdraw @entity {
-  id: ID! # use txhash of the event
+  id: Bytes! # use txhash of the event
   "The transaction sender of this withdrawal"
-  sender: Bytes! # Withdrawal.sender
+  sender: Account! # Withdrawal.sender
   "The token that was withdrawn"
   token: ERC20! # Withdraw.config.token
   "The vaultId that was withdrawn from"
@@ -170,31 +171,18 @@ type VaultWithdraw @entity {
   tokenVault: TokenVault! # map by {Withdraw.config.vaultId}-{Withdraw.sender}-{Withdraw.config.token}
 }
 
-type ERC20 implements ERC20Interface @entity {
-  id: ID! #address of token
-  deployBlock: BigInt! #the block the contract was deployed
-  deployTimestamp: BigInt! #the timestamp the contract was deployed
-  symbol: String
+type ERC20 @entity {
+  id: Bytes! #address of token
+  name: String!
+  symbol: String!
   totalSupply: BigInt!
-  decimals: Int
-  name: String
+  decimals: Int!
 }
 
-################## Interfaces
-
-interface ERC20Interface @entity {
-  id: ID! #address of token
-  deployBlock: BigInt! #the block the contract was deployed
-  deployTimestamp: BigInt! #the timestamp the contract was deployed
-  symbol: String
-  totalSupply: BigInt!
-  decimals: Int
-  name: String
+type Account @entity {
+  id: Bytes!
+  orders: [Order!] @derivedFrom(field: "owner")
+  withdraws: [VaultWithdraw!] @derivedFrom(field: "sender")
+  deposits: [VaultDeposit!] @derivedFrom(field: "sender")
 }
 
-interface HolderInterface @entity {
-  id: ID! # {tokenAddress} - {holderAddress}
-  address: Bytes!
-  token: ERC20! # added this so Holder can be used for multiple ERC20 tokens
-  balance: BigInt!
-}
