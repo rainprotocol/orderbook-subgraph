@@ -1,4 +1,200 @@
-type OrderBook @entity{
-    id: Bytes!
-    deployer: Bytes!
+type OrderBook @entity {
+  id: Bytes!
+  deployer: Bytes!
+  "The RainMetaV1 decode information"
+  meta: RainMetaV1! # Use the CBOR AS library to decode the meta emited by the OB
+}
+
+type RainMetaV1 @entity {
+  "Hash of the meta emitted by the contract"
+  id: ID! # Hash of the meta emitted by the contract. Including the MagicNumber.
+  "Original meta bytes emitted from the contract"
+  metaBytes: Bytes! # Original meta bytes emitted from the contract
+  "The meta content V1 decoded from the meta bytes emitted"
+  content: [MetaContentV1!] @derivedFrom(field: "documents")
+}
+
+type MetaContentV1 @entity {
+  "The hash of the Map Rain Meta document or CBOR Item"
+  id: ID! # Hash of the whole stringify data.
+  "The payload present on the index 0 of the Rain meta Document"
+  payload: Bytes!
+  "The magic number that is used to track the payload"
+  magicNumber: BigInt!
+  "The header name info for Content-Type"
+  contentType: String!
+  "The header name info for Content-Encoding. It's optional"
+  contentEncoding: String
+  "The header name info for Content-Language. It's optional"
+  contentLanguage: String
+  "RainMeta documents bytes that have this content"
+  documents: [RainMetaV1!]
+}
+
+### Old entities (TODO: review)
+
+# Created with the first AddOrder event, then updated on the corresponding OrderDead/OrderLive events
+type Order @entity {
+  "The hash of the order"
+  id: ID!
+
+  "The hash of the transaction"
+  transactionHash: Bytes!
+
+  "The address that added the order"
+  owner: Bytes!
+
+  "The IInterpreter address that is used to add the order"
+  interpreter: Bytes!
+
+  "The IInterpreterStore address that is used to add the order"
+  interpreterStore: Bytes!
+
+  "The IExpressionDeployer contract address that is used to add the order"
+  expressionDeployer: Bytes!
+
+  "The address to the rain expression for the Order"
+  expression: Bytes!
+
+  "Whether the order is active or deactive"
+  orderActive: Boolean!
+
+  "Flag that check if there is a handle_IO entrypoint to run. If false the order book MAY skip calling the interpreter to save gas"
+  handleIO: Boolean!
+
+  "The RainMetaV1 decode information Rain `MetaV1` when the order is placed so can be used by offchain processes."
+  meta: RainMetaV1!
+
+  "validInputs"
+  validInputs: [IO!]
+
+  "validOutputs"
+  validOutputs: [IO!]
+
+  "Timestamp when the order was added"
+  timestamp: BigInt!
+}
+
+# Created with AddOrder
+type IO @entity {
+  id: ID!
+  index: BigInt!
+  token: ERC20!
+  vault: Vault!
+  tokenVault: TokenVault!
+}
+
+# Created and updated whenever an AddOrder event occurs
+# ALSO created and updated when a pair of Clear/AfterClear events occur
+type Vault @entity {
+  id: ID! #{vaultId}-{owner}
+  "The owner of this Vault"
+  owner: Bytes!
+
+  "Tokens in this Vault"
+  tokenVaults: [TokenVault!]
+
+  "Deposits into this Vault"
+  deposits: [VaultDeposit!] # add whenever a Deposit event occurs for this {vaultId}-{owner}
+  "Withdrawals from this Vault"
+  withdraws: [VaultWithdraw!] # add whenver a Withdraw event occurs for this {vaultId}-{owner}
+}
+
+type TokenVault @entity {
+  id: ID! #{vaultId}-{owner}-{token}
+  "The owner of this Vault"
+  owner: Bytes! # From Deposit.sender / Withdraw.sender
+  "The id of this vault"
+  vaultId: BigInt!
+
+  "The token that has a balance for this vault and owner."
+  token: ERC20!
+
+  # Add to this value:
+  # Deposit.amount when there is a matching Deposit event for {vaultId}-{owner}-{token}
+  # OR AfterClear.stateChange.aInput when there is a Clear event that matches {Clear.a_.inputVault}-{Clear.a_.owner}-{Clear.a_.inputToken}
+  # OR AfterClear.stateChange.bInput when there is a Clear event that matches {Clear.b_.inputVault}-{Clear.b_.owner}-{Clear.b_.inputToken}
+  # Subtract from this value:
+  # Withdraw.amount when there is a matching Withdraw event for {vaultId}-{owner}-{token}
+
+  "The balance of this token, for this vault, for this owner"
+  balance: BigInt! # updated on every Deposit/Withdraw event that occurs for this {vaultId}-{owner}-{token}
+  # Add to array:
+  # when {Order.inputVault}-{Order.owner}-{Order.inputToken} match this TokenVault
+  # OR when {Order.outputVault}-{Order.owner}-{Order.outputToken} match this TokenVault
+
+  "Orders that reference this vault, owner and token"
+  orders: [Order!]
+
+  # TODO: NEED REVIEW
+  # Add to array:
+  # when {Clear.a_.inputVault}-{Clear.a_.owner}-{Clear.a_.inputToken} match this TokenVault
+  # OR when {Clear.b_.outputVault}-{Clear.b_.owner}-{Clear.b_.outputToken} match this TokenVault
+  # "OrderClears that reference this vault, owner and token"
+  # orderClears: [OrderClear!]
+}
+
+# Created for every Deposit event
+type VaultDeposit @entity {
+  id: ID! # use txhash of the event
+  "The transaction sender of this deposit"
+  sender: Bytes! # Deposit.sender
+  "The token that was deposited"
+  token: ERC20! # Deposit.config.token
+  "The vaultId that was deposited into"
+  vaultId: BigInt! # Deposit.config.vaultId
+  "The Vault that was deposited into"
+  vault: Vault! # map by {Deposit.config.vaultId}-{sender}
+  "The amount that was deposited"
+  amount: BigInt! # Deposit.config.amount
+  "The current balance of this token for this Vault"
+  tokenVault: TokenVault! # map by {Deposit.config.vaultId}-{Deposit.sender}-{Deposit.config.token}
+}
+
+# Created for every Withdraw event
+type VaultWithdraw @entity {
+  id: ID! # use txhash of the event
+  "The transaction sender of this withdrawal"
+  sender: Bytes! # Withdrawal.sender
+  "The token that was withdrawn"
+  token: ERC20! # Withdraw.config.token
+  "The vaultId that was withdrawn from"
+  vaultId: BigInt! # Withdraw.config.vaultId
+  "The Vault that was withdrawn from"
+  vault: Vault! # map by {Withdraw.config.vaultId}-{sender}
+  "The amount that was requested be withdrawn"
+  requestedAmount: BigInt! # Withdraw.config.amount
+  "The amount that was withdrawn"
+  amount: BigInt! # Withdraw.amount
+  "The current balance of this token for this Vault"
+  tokenVault: TokenVault! # map by {Withdraw.config.vaultId}-{Withdraw.sender}-{Withdraw.config.token}
+}
+
+type ERC20 implements ERC20Interface @entity {
+  id: ID! #address of token
+  deployBlock: BigInt! #the block the contract was deployed
+  deployTimestamp: BigInt! #the timestamp the contract was deployed
+  symbol: String
+  totalSupply: BigInt!
+  decimals: Int
+  name: String
+}
+
+################## Interfaces
+
+interface ERC20Interface @entity {
+  id: ID! #address of token
+  deployBlock: BigInt! #the block the contract was deployed
+  deployTimestamp: BigInt! #the timestamp the contract was deployed
+  symbol: String
+  totalSupply: BigInt!
+  decimals: Int
+  name: String
+}
+
+interface HolderInterface @entity {
+  id: ID! # {tokenAddress} - {holderAddress}
+  address: Bytes!
+  token: ERC20! # added this so Holder can be used for multiple ERC20 tokens
+  balance: BigInt!
 }
