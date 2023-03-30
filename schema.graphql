@@ -181,21 +181,24 @@ type Account @entity {
   orders: [Order!] @derivedFrom(field: "owner")
   withdraws: [VaultWithdraw!] @derivedFrom(field: "sender")
   deposits: [VaultDeposit!] @derivedFrom(field: "sender")
+  ordersCleared: [OrderClear!] @derivedFrom(field: "clearer")
+  bounties: [Bounty!] @derivedFrom(field: "clearer")
+  takeOrderEntities: [TakeOrderEntity!] @derivedFrom(field: "sender")
 }
 
 # Created for every pair of AfterClear/Clear events
 type OrderClear @entity {
   id: ID! # timestamp
   "The sender address who cleared the Orders"
-  sender: Bytes! # Clear.sender
+  sender: Account! # Clear.sender
   "The clearer address who cleared this order"
-  clearer: Bytes! # from Clear.sender
+  clearer: Account! # from Clear.sender
   "Order A being cleared"
   orderA: Order! # map by hash(Clear.a_)
   "Order B being cleared"
   orderB: Order! # map by hash(Clear.b_)
   "The owners of the Orders that were cleared [Order A, Order B]"
-  owners: [Bytes!] # [Clear.a_.owner, Clear.b_.owner]
+  owners: [Account!] # [Clear.a_.owner, Clear.b_.owner]
   "The token input index cleared into Order A"
   aInputIOIndex: BigInt!
 
@@ -209,16 +212,16 @@ type OrderClear @entity {
   bOutputIOIndex: BigInt!
 
   "The bounty paid when this order was cleared"
-  bounty: Bounty! # map by unique id created - see Bounty entity
+  bounty: Bounty! @derivedFrom(field: "orderClear") # map by unique id created - see Bounty entity
   "The state change that occured because of this Clear"
-  stateChange: OrderClearStateChange # map by unique id created - see OrderClearStateChange entity
+  stateChange: OrderClearStateChange! @derivedFrom(field: "orderClear") # map by unique id created - see OrderClearStateChange entity
 }
 
 # Created when each OrderClear entity is created
 type Bounty @entity {
   id: ID! # create a unique ID when OrderClear entity is created
   "The clearer who received this bounty"
-  clearer: Bytes! # from Clear.sender
+  clearer: Account! # from Clear.sender
   "The Clear event that paid this bounty"
   orderClear: OrderClear!
 
@@ -241,7 +244,7 @@ type Bounty @entity {
 # Created for every pair of TakeOrder events
 type TakeOrderEntity @entity {
   id: ID! # Hash of ((TakeOrder.config))
-  sender: Bytes!
+  sender: Account!
   order: Order!
   "The input amount from the perspective of sender"
   input: BigInt!
@@ -257,7 +260,8 @@ type TakeOrderEntity @entity {
 
 # Create when an OrderClear entity is created
 type OrderClearStateChange @entity {
-  id: ID! # create a unqiue ID when OrderClear entity is created
+  id: ID! # create a unique ID when OrderClear entity is created
+  orderClear: OrderClear!
   aOutput: BigInt! # AfterClear.clearStateChange.aliceOutput
   bOutput: BigInt! # AfterClear.clearStateChange.bobOutput
   aInput: BigInt! # AfterClear.clearStateChange.aliceInput

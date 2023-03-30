@@ -1,9 +1,12 @@
 import {
+  Bounty,
   IO,
-  MetaContentV1,
   Order,
   OrderBook,
+  OrderClear,
+  OrderClearStateChange,
   RainMetaV1,
+  TakeOrderEntity,
   VaultDeposit,
   VaultWithdraw,
 } from "../generated/schema";
@@ -21,11 +24,13 @@ import {
   TakeOrder,
   Withdraw,
   Initialized,
+  ClearAliceStruct,
 } from "../generated/OrderBook/OrderBook";
-import { Bytes, crypto, json, log } from "@graphprotocol/graph-ts";
+import { Bytes, crypto, json } from "@graphprotocol/graph-ts";
 import {
   createAccount,
   createMetaContentV1,
+  createOrder,
   createToken,
   createTokenVault,
   createVault,
@@ -73,9 +78,68 @@ export function handleAddOrder(event: AddOrder): void {
 }
 
 export function handleAfterClear(event: AfterClear): void {
+  let orderClearStateChange = new OrderClearStateChange(
+    event.block.timestamp.toString()
+  );
+  orderClearStateChange.orderClear = event.block.timestamp.toString();
+  orderClearStateChange.aInput = event.params.clearStateChange.aliceInput;
+  orderClearStateChange.aOutput = event.params.clearStateChange.aliceOutput;
+  orderClearStateChange.bInput = event.params.clearStateChange.bobInput;
+  orderClearStateChange.bOutput = event.params.clearStateChange.bobOutput;
+  orderClearStateChange.save();
+
+  let bounty = Bounty.load(event.block.timestamp.toString());
+  if (bounty) {
+    bounty.bountyAmountA = event.params.clearStateChange.aliceOutput.minus(
+      event.params.clearStateChange.bobInput
+    );
+    bounty.bountyAmountB = event.params.clearStateChange.bobOutput.minus(
+      event.params.clearStateChange.aliceInput
+    );
+    bounty.save();
+  }
 }
 
-export function handleClear(event: Clear): void {}
+export function handleClear(event: Clear): void {
+  let orderClear = new OrderClear(event.block.timestamp.toString());
+  orderClear.sender = createAccount(event.params.sender).id;
+  orderClear.clearer = createAccount(event.params.sender).id;
+  orderClear.orderA = createOrder(event.params.alice).id;
+  orderClear.orderB = createOrder(changetype<ClearAliceStruct>(event.params.bob)).id;
+  orderClear.owners = [
+    createAccount(event.params.alice.owner).id,
+    createAccount(event.params.bob.owner).id,
+  ];
+  orderClear.aInputIOIndex = event.params.clearConfig.aliceInputIOIndex;
+  orderClear.aOutputIOIndex = event.params.clearConfig.aliceOutputIOIndex;
+  orderClear.bInputIOIndex = event.params.clearConfig.bobInputIOIndex;
+  orderClear.bOutputIOIndex = event.params.clearConfig.bobOutputIOIndex;
+  orderClear.save();
+
+  let bounty = new Bounty(event.block.timestamp.toString());
+  bounty.clearer = createAccount(event.params.sender).id;
+  bounty.orderClear = orderClear.id;
+  bounty.bountyVaultA = createVault(
+    event.params.clearConfig.aliceBountyVaultId.toString(),
+    event.params.sender
+  ).id;
+  bounty.bountyVaultB = createVault(
+    event.params.clearConfig.bobBountyVaultId.toString(),
+    event.params.sender
+  ).id;
+
+  bounty.bountyTokenA = createToken(
+    event.params.alice.validOutputs[
+      event.params.clearConfig.aliceOutputIOIndex.toI32()
+    ].token
+  ).id;
+  bounty.bountyTokenB = createToken(
+    event.params.bob.validOutputs[
+      event.params.clearConfig.bobOutputIOIndex.toI32()
+    ].token
+  ).id;
+  bounty.save();
+}
 
 export function handleContext(event: Context): void {}
 
@@ -135,7 +199,26 @@ export function handleOrderZeroAmount(event: OrderZeroAmount): void {}
 
 export function handleRemoveOrder(event: RemoveOrder): void {}
 
-export function handleTakeOrder(event: TakeOrder): void {}
+export function handleTakeOrder(event: TakeOrder): void {
+  let orderEntity = new TakeOrderEntity(event.transaction.hash.toHex());
+  orderEntity.sender = createAccount(event.params.sender).id;
+  orderEntity.order = createOrder(changetype<ClearAliceStruct>(event.params.config.order)).id;
+  orderEntity.input = event.params.input;
+  orderEntity.output = event.params.output;
+  orderEntity.inputIOIndex = event.params.config.inputIOIndex;
+  orderEntity.outputIOIndex = event.params.config.outputIOIndex;
+  orderEntity.inputToken = createToken(
+    event.params.config.order.validInputs[
+      event.params.config.inputIOIndex.toI32()
+    ].token
+  ).id;
+  orderEntity.inputToken = createToken(
+    event.params.config.order.validOutputs[
+      event.params.config.outputIOIndex.toI32()
+    ].token
+  ).id;
+  orderEntity.save();
+}
 
 export function handleWithdraw(event: Withdraw): void {
   let tokenVault = createTokenVault(
