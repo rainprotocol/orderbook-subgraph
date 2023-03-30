@@ -13,7 +13,9 @@
     "url": "https://github.com/rainprotocol/rain-protocol-subgraph/issues"
   },
   "scripts": {
-    "test": "hardhat test"
+    "test": "hardhat test",
+    "codegen": "graph codegen",
+    "build": "graph build"
   },
   "dependencies": {
     "@chainlink/contracts": "^0.5.1",

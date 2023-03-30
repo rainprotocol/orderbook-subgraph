@@ -32,9 +32,7 @@ type MetaContentV1 @entity {
   documents: [RainMetaV1!]
 }
 
-### Old entities (TODO: review)
-
-# Created with the first AddOrder event, then updated on the corresponding OrderDead/OrderLive events
+# Created with the first AddOrder event, then updated on the corresponding AddOrder/RemoveOrder events
 type Order @entity {
   "The hash of the order"
   id: ID!
@@ -64,7 +62,7 @@ type Order @entity {
   handleIO: Boolean!
 
   # "The RainMetaV1 decode information Rain `MetaV1` when the order is placed so can be used by offChain processes."
-  # meta: RainMetaV1!
+  meta: RainMetaV1!
 
   "validInputs"
   validInputs: [IO!] @derivedFrom(field: "order")
@@ -96,9 +94,9 @@ type Vault @entity {
   tokenVaults: [TokenVault!] @derivedFrom(field: "vault")
 
   "Deposits into this Vault"
-  deposits: [VaultDeposit!] @derivedFrom(field: "vault")# add whenever a Deposit event occurs for this {vaultId}-{owner}
+  deposits: [VaultDeposit!] @derivedFrom(field: "vault") # add whenever a Deposit event occurs for this {vaultId}-{owner}
   "Withdrawals from this Vault"
-  withdraws: [VaultWithdraw!] @derivedFrom(field: "vault")# add whenver a Withdraw event occurs for this {vaultId}-{owner}
+  withdraws: [VaultWithdraw!] @derivedFrom(field: "vault") # add whenver a Withdraw event occurs for this {vaultId}-{owner}
 }
 
 type TokenVault @entity {
@@ -127,12 +125,11 @@ type TokenVault @entity {
   "Orders that reference this vault, owner and token"
   orders: [Order!]
 
-  # TODO: NEED REVIEW
   # Add to array:
   # when {Clear.a_.inputVault}-{Clear.a_.owner}-{Clear.a_.inputToken} match this TokenVault
   # OR when {Clear.b_.outputVault}-{Clear.b_.owner}-{Clear.b_.outputToken} match this TokenVault
   # "OrderClears that reference this vault, owner and token"
-  # orderClears: [OrderClear!]
+  orderClears: [OrderClear!]
 }
 
 # Created for every Deposit event
@@ -186,3 +183,83 @@ type Account @entity {
   deposits: [VaultDeposit!] @derivedFrom(field: "sender")
 }
 
+# Created for every pair of AfterClear/Clear events
+type OrderClear @entity {
+  id: ID! # timestamp
+  "The sender address who cleared the Orders"
+  sender: Bytes! # Clear.sender
+  "The clearer address who cleared this order"
+  clearer: Bytes! # from Clear.sender
+  "Order A being cleared"
+  orderA: Order! # map by hash(Clear.a_)
+  "Order B being cleared"
+  orderB: Order! # map by hash(Clear.b_)
+  "The owners of the Orders that were cleared [Order A, Order B]"
+  owners: [Bytes!] # [Clear.a_.owner, Clear.b_.owner]
+  "The token input index cleared into Order A"
+  aInputIOIndex: BigInt!
+
+  "The token output index cleared into Order A"
+  aOutputIOIndex: BigInt!
+
+  "The token input index cleared into Order B"
+  bInputIOIndex: BigInt!
+
+  "The token output index cleared into Order B"
+  bOutputIOIndex: BigInt!
+
+  "The bounty paid when this order was cleared"
+  bounty: Bounty! # map by unique id created - see Bounty entity
+  "The state change that occured because of this Clear"
+  stateChange: OrderClearStateChange # map by unique id created - see OrderClearStateChange entity
+}
+
+# Created when each OrderClear entity is created
+type Bounty @entity {
+  id: ID! # create a unique ID when OrderClear entity is created
+  "The clearer who received this bounty"
+  clearer: Bytes! # from Clear.sender
+  "The Clear event that paid this bounty"
+  orderClear: OrderClear!
+
+  "The Vault that bounty token A was deposited into"
+  bountyVaultA: Vault! # map by {Clear.clearConfig.aliceBountyVaultId}-{Clear.sender}
+  "The Vault that bounty token B was deposited into"
+  bountyVaultB: Vault! # map by {Clear.clearConfig.bobBountyVaultId}-{Clear.sender}
+  # Not Including Tokens , bounty referenced by VaultA And VaultB
+
+  "The A token for the bounty"
+  bountyTokenA: ERC20! # Clear.alice.validOutputs[clearConfig.aliceOutputIOIndex].token
+  "The B token for the bounty"
+  bountyTokenB: ERC20! # Clear.bob.validOutputs[clearConfig.bobOutputIOIndex].token
+  "The amount paid for bounty token A"
+  bountyAmountA: BigInt # AfterClear.clearStateChange.aliceOutput - AfterClear.clearStateChange.bobInput
+  "The amount paid for bounty token B"
+  bountyAmountB: BigInt # AfterClear.clearStateChange.bobOutput - AfterClear.clearStateChange.aliceInput
+}
+
+# Created for every pair of TakeOrder events
+type TakeOrderEntity @entity {
+  id: ID! # Hash of ((TakeOrder.config))
+  sender: Bytes!
+  order: Order!
+  "The input amount from the perspective of sender"
+  input: BigInt!
+  "The output amount from the perspective of sender"
+  output: BigInt!
+  "The index of the input token in order to match with the take order output."
+  inputIOIndex: BigInt! # index of input token for Input Token Array
+  "The index of the output token in `order` to match with the take order input."
+  outputIOIndex: BigInt! # index of output token for Output Token Array
+  inputToken: ERC20! # TakeOrder.config.order.validInputs[TakeOrder.config.inputIOIndex].token
+  outputToken: ERC20! # TakeOrder.config.order.validOutputs[TakeOrder.config.outputIOIndex].token
+}
+
+# Create when an OrderClear entity is created
+type OrderClearStateChange @entity {
+  id: ID! # create a unqiue ID when OrderClear entity is created
+  aOutput: BigInt! # AfterClear.clearStateChange.aliceOutput
+  bOutput: BigInt! # AfterClear.clearStateChange.bobOutput
+  aInput: BigInt! # AfterClear.clearStateChange.aliceInput
+  bInput: BigInt! # AfterClear.clearStateChange.bobInput
+}
