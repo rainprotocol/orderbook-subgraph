@@ -34,6 +34,7 @@ import {
   createToken,
   createTokenVault,
   createVault,
+  hashTakeOrderConfig,
   stringToArrayBuffer,
 } from "./utiils";
 import { CBORDecoder } from "@rainprotocol/assemblyscript-cbor";
@@ -200,7 +201,7 @@ export function handleOrderZeroAmount(event: OrderZeroAmount): void {}
 export function handleRemoveOrder(event: RemoveOrder): void {}
 
 export function handleTakeOrder(event: TakeOrder): void {
-  let orderEntity = new TakeOrderEntity(event.transaction.hash.toHex());
+  let orderEntity = new TakeOrderEntity(hashTakeOrderConfig(event.params.config));
   orderEntity.sender = createAccount(event.params.sender).id;
   orderEntity.order = createOrder(changetype<ClearAliceStruct>(event.params.config.order)).id;
   orderEntity.input = event.params.input;

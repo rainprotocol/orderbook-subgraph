@@ -1,7 +1,28 @@
-import { Bytes, BigInt, TypedMap, JSONValue, Address, ethereum, crypto, ByteArray } from "@graphprotocol/graph-ts";
-import { Account, ERC20, MetaContentV1, Order, TokenVault, Vault } from "../generated/schema";
+import {
+  Bytes,
+  BigInt,
+  TypedMap,
+  JSONValue,
+  Address,
+  ethereum,
+  crypto,
+  ByteArray,
+} from "@graphprotocol/graph-ts";
+import {
+  Account,
+  ERC20,
+  MetaContentV1,
+  Order,
+  TokenVault,
+  Vault,
+} from "../generated/schema";
 import { ReserveToken } from "../generated/OrderBook/ReserveToken";
-import { ClearAliceStruct, ClearBobStruct } from "../generated/OrderBook/OrderBook";
+import {
+  ClearAliceStruct,
+  ClearBobStruct,
+  TakeOrder,
+  TakeOrderConfigStruct,
+} from "../generated/OrderBook/OrderBook";
 
 export function stringToArrayBuffer(val: string): ArrayBuffer {
   const buff = new ArrayBuffer(val.length / 2);
@@ -72,31 +93,34 @@ export function createToken(address: Bytes): ERC20 {
 }
 
 export function createVault(vaultId: string, owner: Bytes): Vault {
-    let vault = new Vault(`${vaultId}-${owner}`);
-    if(!vault){
-        vault = new Vault(`${vaultId}-${owner}`);
-        vault.owner = createAccount(owner).id;
-        vault.deposits = [];
-        vault.withdraws = [];
-        vault.save();
-    }
-    return vault;
+  let vault = new Vault(`${vaultId}-${owner}`);
+  if (!vault) {
+    vault = new Vault(`${vaultId}-${owner}`);
+    vault.owner = createAccount(owner).id;
+    vault.deposits = [];
+    vault.withdraws = [];
+    vault.save();
+  }
+  return vault;
 }
 
-export function createTokenVault(vaultId: string, owner: Bytes, token: Bytes): TokenVault {
-    let tokenVault = TokenVault.load(`${vaultId}-${owner}-${token}`);
-    if (!tokenVault){
-        tokenVault = new TokenVault(`${vaultId}-${owner}-${token}`);
-        tokenVault.owner = createAccount(owner).id;
-        tokenVault.token = createToken(token).id;
-        tokenVault.balance = BigInt.zero();
-        tokenVault.save();
-    }
-    return tokenVault;    
+export function createTokenVault(
+  vaultId: string,
+  owner: Bytes,
+  token: Bytes
+): TokenVault {
+  let tokenVault = TokenVault.load(`${vaultId}-${owner}-${token}`);
+  if (!tokenVault) {
+    tokenVault = new TokenVault(`${vaultId}-${owner}-${token}`);
+    tokenVault.owner = createAccount(owner).id;
+    tokenVault.token = createToken(token).id;
+    tokenVault.balance = BigInt.zero();
+    tokenVault.save();
+  }
+  return tokenVault;
 }
 
 export function createOrder(order: ClearAliceStruct): Order {
-
   let tupleEvaluable: Array<ethereum.Value> = [
     ethereum.Value.fromAddress(order.evaluable.interpreter),
     ethereum.Value.fromAddress(order.evaluable.store),
@@ -106,7 +130,7 @@ export function createOrder(order: ClearAliceStruct): Order {
   let evaluable = changetype<ethereum.Tuple>(tupleEvaluable);
 
   let tupleValidInputs: Array<ethereum.Tuple> = [];
-  for(let i=0;i<order.validInputs.length;i++){
+  for (let i = 0; i < order.validInputs.length; i++) {
     let VI: Array<ethereum.Value> = [
       ethereum.Value.fromAddress(order.validInputs[i].token),
       ethereum.Value.fromI32(order.validInputs[i].decimals),
@@ -117,7 +141,7 @@ export function createOrder(order: ClearAliceStruct): Order {
   }
 
   let tupleValidOutputs: Array<ethereum.Tuple> = [];
-  for(let i=0;i<order.validOutputs.length;i++){
+  for (let i = 0; i < order.validOutputs.length; i++) {
     let VO: Array<ethereum.Value> = [
       ethereum.Value.fromAddress(order.validOutputs[i].token),
       ethereum.Value.fromI32(order.validOutputs[i].decimals),
@@ -127,21 +151,21 @@ export function createOrder(order: ClearAliceStruct): Order {
     tupleValidOutputs.push(changetype<ethereum.Tuple>(VO));
   }
 
-  let tupleArray_alice: Array<ethereum.Value> = [
+  let tupleArray: Array<ethereum.Value> = [
     ethereum.Value.fromAddress(order.owner),
     ethereum.Value.fromBoolean(order.handleIO),
     ethereum.Value.fromTuple(evaluable),
     ethereum.Value.fromTupleArray(tupleValidInputs),
-    ethereum.Value.fromTupleArray(tupleValidOutputs)
+    ethereum.Value.fromTupleArray(tupleValidOutputs),
   ];
 
-  let tuple = changetype<ethereum.Tuple>(tupleArray_alice);
+  let tuple = changetype<ethereum.Tuple>(tupleArray);
   let encodedOrder = ethereum.encode(ethereum.Value.fromTuple(tuple))!;
   let keccak256 = crypto.keccak256(encodedOrder as ByteArray);
   let uint256 = hexToBI(keccak256.toHex());
 
   let order_ = Order.load(uint256.toString());
-  if(order_) return order_;
+  if (order_) return order_;
   else return new Order(uint256.toString());
 }
 
@@ -149,4 +173,31 @@ function hexToBI(hexString: string): BigInt {
   return BigInt.fromUnsignedBytes(
     changetype<Bytes>(Bytes.fromHexString(hexString).reverse())
   );
+}
+
+export function hashTakeOrderConfig(config: TakeOrderConfigStruct): string {
+  let order = createOrder(changetype<ClearAliceStruct>(config.order));
+
+  let signedContextArray: Array<ethereum.Tuple> = [];
+  for (let i = 0; i < config.signedContext.length; i++) {
+    let signedContext: Array<ethereum.Value> = [
+      ethereum.Value.fromAddress(config.signedContext[i].signer),
+      ethereum.Value.fromBytes(config.signedContext[i].signature),
+      ethereum.Value.fromUnsignedBigIntArray(config.signedContext[i].context),
+    ];
+    signedContextArray.push(changetype<ethereum.Tuple>(signedContext))
+  }
+
+
+  let tupleArray: Array<ethereum.Value> = [
+    ethereum.Value.fromString(order.id),
+    ethereum.Value.fromUnsignedBigInt(config.inputIOIndex),
+    ethereum.Value.fromUnsignedBigInt(config.outputIOIndex),
+    ethereum.Value.fromTupleArray(signedContextArray),
+  ];
+
+  let tuple = changetype<ethereum.Tuple>(tupleArray);
+  let encodedOrder = ethereum.encode(ethereum.Value.fromTuple(tuple))!;
+  let keccak256 = crypto.keccak256(encodedOrder as ByteArray);
+  return keccak256.toHex();
 }
