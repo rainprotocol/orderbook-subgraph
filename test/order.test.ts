@@ -531,5 +531,17 @@ describe("Order entity", () => {
 
     // TODO: Review @naneez
     assert(addOrderHash_0.eq(addOrderHash_1), "wrong order added again");
+
+    const query = `{
+      order (id: "${addOrderHash_0.toHexString().toLowerCase()}") {
+        orderActive
+      }
+    }`;
+
+    const response = (await subgraph({ query })) as FetchResult;
+
+    const data = response.data.order;
+
+    assert.equal(data.orderActive, true, "The order was not activated again");
   });
 });
