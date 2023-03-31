@@ -23,5 +23,4 @@ describe("Orderbook entity", () => {
     assert.equal(data.deployer, deployerAddress, "Wrong deployer address ID");
   });
 
-  it("should query the OrderBook meta correctly");
 });

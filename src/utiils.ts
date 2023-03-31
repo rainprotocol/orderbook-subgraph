@@ -7,6 +7,7 @@ import {
   ethereum,
   crypto,
   ByteArray,
+  log,
 } from "@graphprotocol/graph-ts";
 import {
   Account,
@@ -87,15 +88,20 @@ export function createToken(address: Bytes): ERC20 {
     token.decimals = !decimals.reverted ? decimals.value : 18;
     token.name = !name.reverted ? name.value : "NONE";
     token.symbol = !symbol.reverted ? symbol.value : "NONE";
-    token.save();
+    token.totalSupply = BigInt.zero();
   }
+  let totalSupply = reserveToken.try_totalSupply();
+  token.totalSupply = !totalSupply.reverted
+    ? totalSupply.value
+    : token.totalSupply;
+  token.save();
   return token;
 }
 
 export function createVault(vaultId: string, owner: Bytes): Vault {
-  let vault = new Vault(`${vaultId}-${owner}`);
+  let vault = new Vault(`${vaultId}`);
   if (!vault) {
-    vault = new Vault(`${vaultId}-${owner}`);
+    vault = new Vault(`${vaultId}`);
     vault.owner = createAccount(owner).id;
     vault.deposits = [];
     vault.withdraws = [];
@@ -140,6 +146,7 @@ export function createOrder(order: ClearAliceStruct): Order {
     tupleValidInputs.push(changetype<ethereum.Tuple>(VI));
   }
 
+
   let tupleValidOutputs: Array<ethereum.Tuple> = [];
   for (let i = 0; i < order.validOutputs.length; i++) {
     let VO: Array<ethereum.Value> = [
@@ -161,7 +168,7 @@ export function createOrder(order: ClearAliceStruct): Order {
 
   let tuple = changetype<ethereum.Tuple>(tupleArray);
   let encodedOrder = ethereum.encode(ethereum.Value.fromTuple(tuple))!;
-  let keccak256 = crypto.keccak256(encodedOrder as ByteArray);
+  let keccak256 = crypto.keccak256(encodedOrder);
   let uint256 = hexToBI(keccak256.toHex());
 
   let order_ = Order.load(uint256.toString());
@@ -185,9 +192,8 @@ export function hashTakeOrderConfig(config: TakeOrderConfigStruct): string {
       ethereum.Value.fromBytes(config.signedContext[i].signature),
       ethereum.Value.fromUnsignedBigIntArray(config.signedContext[i].context),
     ];
-    signedContextArray.push(changetype<ethereum.Tuple>(signedContext))
+    signedContextArray.push(changetype<ethereum.Tuple>(signedContext));
   }
-
 
   let tupleArray: Array<ethereum.Value> = [
     ethereum.Value.fromString(order.id),

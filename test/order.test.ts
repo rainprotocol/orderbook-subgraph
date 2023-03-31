@@ -32,6 +32,7 @@ import {
   getTxTimeblock,
   waitForSubgraphToBeSynced,
 } from "./utils";
+import { exit } from "process";
 
 async function getInterpretersFromDeployer(deployerAddress: string) {
   const expressionDeployer = (await ethers.getContractAt(
@@ -158,7 +159,9 @@ describe("Order entity", () => {
     const query = `{
       order (id: "${orderHash.toHexString().toLowerCase()}") {
         transactionHash
-        owner
+        owner{
+          id
+        }
         interpreter
         interpreterStore
         expressionDeployer
@@ -181,9 +184,8 @@ describe("Order entity", () => {
     const response = (await subgraph({ query })) as FetchResult;
 
     const data = response.data.order;
-
     assert.equal(data.transactionHash, txOrder_A.hash.toLowerCase());
-    assert.equal(data.owner, sender_A.toLowerCase());
+    assert.equal(data.owner.id, sender_A.toLowerCase());
 
     assert.equal(data.interpreter, rainterpreter.toLowerCase());
     assert.equal(data.interpreterStore, store.toLowerCase());
@@ -200,7 +202,6 @@ describe("Order entity", () => {
     // TODO: Add suport for MetaV1 entities @naneez
     // assert.equal(data.meta.id, '');
 
-    // TODO: Review checks @vishal
     // Checking every validInputs
     checkIO(orderHash.toHexString(), order_A.validInputs, data.validInputs);
 
@@ -324,7 +325,8 @@ describe("Order entity", () => {
 
     assert(sender_B === bob.address, "wrong sender");
     compareStructs(order_B, orderConfig_B);
-
+    
+    await waitForSubgraphToBeSynced();
     // SG check
     const query = `{
       orders {
@@ -335,10 +337,14 @@ describe("Order entity", () => {
     const response = (await subgraph({ query })) as FetchResult;
 
     const data = response.data.orders;
+    console.log(data)
+    console.log(orderHash_A.toHexString().toLowerCase())
+    console.log(orderHash_B.toHexString().toLowerCase())
 
     expect(data).to.deep.include({
       id: orderHash_A.toHexString().toLowerCase(),
     });
+
     expect(data).to.deep.include({
       id: orderHash_B.toHexString().toLowerCase(),
     });
@@ -531,6 +537,8 @@ describe("Order entity", () => {
 
     // TODO: Review @naneez
     assert(addOrderHash_0.eq(addOrderHash_1), "wrong order added again");
+    
+    await waitForSubgraphToBeSynced();
 
     const query = `{
       order (id: "${addOrderHash_0.toHexString().toLowerCase()}") {

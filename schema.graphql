@@ -3,13 +3,12 @@ type OrderBook @entity {
   deployer: Bytes!
   address: Bytes!
   "The RainMetaV1 decode information"
-  meta: [RainMetaV1!] @derivedFrom(field: "orderBook") # Use the CBOR AS library to decode the meta emited by the OB
+  meta: [RainMetaV1!] # Use the CBOR AS library to decode the meta emitted by the OB
 }
 
 type RainMetaV1 @entity {
   "Hash of the meta emitted by the contract"
   id: Bytes! # Hash of the meta emitted by the contract. Including the MagicNumber.
-  orderBook: OrderBook!
   "Original meta bytes emitted from the contract"
   metaBytes: Bytes! # Original meta bytes emitted from the contract
   "The meta content V1 decoded from the meta bytes emitted"
@@ -62,7 +61,7 @@ type Order @entity {
   handleIO: Boolean!
 
   # "The RainMetaV1 decode information Rain `MetaV1` when the order is placed so can be used by offChain processes."
-  meta: RainMetaV1!
+  meta: RainMetaV1
 
   "validInputs"
   validInputs: [IO!] @derivedFrom(field: "order")
@@ -96,7 +95,7 @@ type Vault @entity {
   "Deposits into this Vault"
   deposits: [VaultDeposit!] @derivedFrom(field: "vault") # add whenever a Deposit event occurs for this {vaultId}-{owner}
   "Withdrawals from this Vault"
-  withdraws: [VaultWithdraw!] @derivedFrom(field: "vault") # add whenver a Withdraw event occurs for this {vaultId}-{owner}
+  withdraws: [VaultWithdraw!] @derivedFrom(field: "vault") # add whenever a Withdraw event occurs for this {vaultId}-{owner}
 }
 
 type TokenVault @entity {
@@ -213,7 +212,7 @@ type OrderClear @entity {
 
   "The bounty paid when this order was cleared"
   bounty: Bounty! @derivedFrom(field: "orderClear") # map by unique id created - see Bounty entity
-  "The state change that occured because of this Clear"
+  "The state change that occurred because of this Clear"
   stateChange: OrderClearStateChange! @derivedFrom(field: "orderClear") # map by unique id created - see OrderClearStateChange entity
 }
 

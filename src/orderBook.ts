@@ -5,7 +5,6 @@ import {
   OrderBook,
   OrderClear,
   OrderClearStateChange,
-  RainMetaV1,
   TakeOrderEntity,
   VaultDeposit,
   VaultWithdraw,
@@ -52,6 +51,7 @@ import {
 } from "@rainprotocol/assemblyscript-cbor/assembly/types";
 
 export function handleAddOrder(event: AddOrder): void {
+  log.info("OrderHash :{}", [event.params.orderHash.toHex()]);
   let order = new Order(event.params.orderHash.toHex());
   order.transactionHash = event.transaction.hash;
   order.owner = createAccount(event.params.order.owner).id;
@@ -63,27 +63,31 @@ export function handleAddOrder(event: AddOrder): void {
   order.orderActive = true;
 
   for (let i = 0; i < event.params.order.validInputs.length; i++) {
-    let input = new IO(`${event.params.orderHash.toHex()}-${i.toString()}`);
-    input.token = createToken(event.params.order.validInputs[i].token).id;
-    input.decimals = event.params.order.validInputs[i].decimals;
-    input.vault = createVault(
+    let token = createToken(event.params.order.validInputs[i].token);
+    let vault = createVault(
       event.params.order.validInputs[i].vaultId.toString(),
       event.params.order.owner
-    ).id;
+    );
+    let input = new IO(`${event.params.orderHash.toHex()}-${token.id.toHex()}-${vault.id}`);
+    input.token = token.id;
+    input.decimals = event.params.order.validInputs[i].decimals;
+    input.vault = vault.id;
     input.order = event.params.orderHash.toHex();
     input.save();
   }
 
   for (let i = 0; i < event.params.order.validOutputs.length; i++) {
-    let input = new IO(`${event.params.orderHash.toHex()}-${i.toString()}`);
-    input.token = createToken(event.params.order.validOutputs[i].token).id;
-    input.decimals = event.params.order.validOutputs[i].decimals;
-    input.vault = createVault(
+    let token = createToken(event.params.order.validOutputs[i].token);
+    let vault = createVault(
       event.params.order.validOutputs[i].vaultId.toString(),
       event.params.order.owner
-    ).id;
-    input.order = event.params.orderHash.toHex();
-    input.save();
+    );
+    let output = new IO(`${event.params.orderHash.toHex()}-${token.id.toHex()}-${vault.id}`);
+    output.token = token.id;
+    output.decimals = event.params.order.validOutputs[i].decimals;
+    output.vault = vault.id;
+    output.order = event.params.orderHash.toHex();
+    output.save();
   }
 
   order.timestamp = event.block.timestamp;
@@ -135,11 +139,11 @@ export function handleClear(event: Clear): void {
   bounty.clearer = createAccount(event.params.sender).id;
   bounty.orderClear = orderClear.id;
   bounty.bountyVaultA = createVault(
-    event.params.clearConfig.aliceBountyVaultId.toString(),
+    event.params.clearConfig.aliceBountyVaultId.toHexString(),
     event.params.sender
   ).id;
   bounty.bountyVaultB = createVault(
-    event.params.clearConfig.bobBountyVaultId.toString(),
+    event.params.clearConfig.bobBountyVaultId.toHexString(),
     event.params.sender
   ).id;
 
@@ -244,7 +248,6 @@ export function handleWithdraw(event: Withdraw): void {
 
 export function handleInitialized(event: Initialized): void {
   let orderBook = new OrderBook(event.address);
-
   orderBook.address = event.address;
   orderBook.deployer = event.transaction.from;
   orderBook.save();
@@ -256,9 +259,7 @@ export function handleMetaV1(event: MetaV1): void {
   // and should be added to the OB entity. Otherwise, is emitted somewhere else (like AddOrder)
   // const addBN = Address.fromBigInt(event.params.subject);
   // const addHS = Address.fromHexString(event.params.subject.toHexString());
-
   // // let orderBook = new OrderBook(event.address);
-
   // // let rainMetaV1_ID = Bytes.fromByteArray(
   // //   crypto.keccak256(Bytes.fromByteArray(event.params.meta))
   // // );
@@ -266,22 +267,18 @@ export function handleMetaV1(event: MetaV1): void {
   // // rainMetaV1.metaBytes = event.params.meta;
   // // rainMetaV1.orderBook = event.address;
   // // rainMetaV1.save();
-
   // let metaData = event.params.meta.toHex().slice(18);
   // let data = new CBORDecoder(stringToArrayBuffer(metaData));
   // const res = data.parse();
-
   // if (res.isSequence) {
   //   log.info(`res.isSequence: ${res.isSequence}`, []);
   //   const dataString = res.toString();
   //   log.info(`dataString: ${dataString}`, []);
-
   //   let jsonArr = json.fromString(dataString).toArray();
   //   log.info(`jsonArr.length: ${jsonArr.length}`, []);
   //   for (let i = 0; i < jsonArr.length; i++) {
   //     let metaContent = jsonArr[i].toObject();
   //     // const payload = metaContent.get("0") as JSONValue;
-
   //     // let id = `${event.transaction.hash.toHex()}-${i.toString()}`;
   //     // let _metaContentV1 = createMetaContentV1(id, metaContent, rainMetaV1_ID);
   //   }
