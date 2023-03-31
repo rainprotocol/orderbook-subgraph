@@ -236,3 +236,17 @@ export const waitForGraphNode = async (): Promise<void> => {
     }
   }
 };
+
+/**
+ * Get the block and timestamp of a specific transaction
+ * @param tx Transaction that will be use to get the block and timestamp
+ * @returns The block and timestamp of the transaction
+ */
+export const getTxTimeblock = async (
+  tx: ContractTransaction
+): Promise<[number, number]> => {
+  const block = tx.blockNumber;
+  if (block == undefined) return [0, 0];
+  const timestamp = (await ethers.provider.getBlock(block)).timestamp;
+  return [block, timestamp];
+};
