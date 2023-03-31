@@ -26,7 +26,15 @@ import {
   Initialized,
   ClearAliceStruct,
 } from "../generated/OrderBook/OrderBook";
-import { Bytes, crypto, json } from "@graphprotocol/graph-ts";
+import {
+  Address,
+  ByteArray,
+  Bytes,
+  JSONValue,
+  crypto,
+  json,
+  log,
+} from "@graphprotocol/graph-ts";
 import {
   createAccount,
   createMetaContentV1,
@@ -38,6 +46,10 @@ import {
   stringToArrayBuffer,
 } from "./utiils";
 import { CBORDecoder } from "@rainprotocol/assemblyscript-cbor";
+import {
+  Obj,
+  Sequence,
+} from "@rainprotocol/assemblyscript-cbor/assembly/types";
 
 export function handleAddOrder(event: AddOrder): void {
   let order = new Order(event.params.orderHash.toHex());
@@ -106,7 +118,9 @@ export function handleClear(event: Clear): void {
   orderClear.sender = createAccount(event.params.sender).id;
   orderClear.clearer = createAccount(event.params.sender).id;
   orderClear.orderA = createOrder(event.params.alice).id;
-  orderClear.orderB = createOrder(changetype<ClearAliceStruct>(event.params.bob)).id;
+  orderClear.orderB = createOrder(
+    changetype<ClearAliceStruct>(event.params.bob)
+  ).id;
   orderClear.owners = [
     createAccount(event.params.alice.owner).id,
     createAccount(event.params.bob.owner).id,
@@ -169,29 +183,6 @@ export function handleDeposit(event: Deposit): void {
   vaultDeposit.save();
 }
 
-export function handleMetaV1(event: MetaV1): void {
-  let rainMetaV1ID = Bytes.fromByteArray(
-    crypto.keccak256(Bytes.fromByteArray(event.params.meta))
-  );
-  let rainMetaV1 = new RainMetaV1(rainMetaV1ID);
-  rainMetaV1.metaBytes = event.params.meta;
-  rainMetaV1.orderBook = event.address;
-  rainMetaV1.save();
-
-  let metaData = event.params.meta.toHex().slice(18);
-  let data = new CBORDecoder(stringToArrayBuffer(metaData));
-  let jsonData = json.fromString(data.parse().stringify()).toArray();
-  for (let i = 0; i < jsonData.length; i++) {
-    let metaContentV1Object = jsonData[i].toObject();
-    let id = `${event.transaction.hash.toHex()}-${i.toString()}`;
-    let _metaContentV1 = createMetaContentV1(
-      id,
-      metaContentV1Object,
-      rainMetaV1ID
-    );
-  }
-}
-
 export function handleOrderExceedsMaxRatio(event: OrderExceedsMaxRatio): void {}
 
 export function handleOrderNotFound(event: OrderNotFound): void {}
@@ -201,9 +192,13 @@ export function handleOrderZeroAmount(event: OrderZeroAmount): void {}
 export function handleRemoveOrder(event: RemoveOrder): void {}
 
 export function handleTakeOrder(event: TakeOrder): void {
-  let orderEntity = new TakeOrderEntity(hashTakeOrderConfig(event.params.config));
+  let orderEntity = new TakeOrderEntity(
+    hashTakeOrderConfig(event.params.config)
+  );
   orderEntity.sender = createAccount(event.params.sender).id;
-  orderEntity.order = createOrder(changetype<ClearAliceStruct>(event.params.config.order)).id;
+  orderEntity.order = createOrder(
+    changetype<ClearAliceStruct>(event.params.config.order)
+  ).id;
   orderEntity.input = event.params.input;
   orderEntity.output = event.params.output;
   orderEntity.inputIOIndex = event.params.config.inputIOIndex;
@@ -249,6 +244,50 @@ export function handleWithdraw(event: Withdraw): void {
 
 export function handleInitialized(event: Initialized): void {
   let orderBook = new OrderBook(event.address);
+
+  orderBook.address = event.address;
   orderBook.deployer = event.transaction.from;
   orderBook.save();
+}
+
+export function handleMetaV1(event: MetaV1): void {
+  // TODO: Use `event.params.subject.toHex()` to check if the Subject match with the
+  // MetaV1 emmiter. if that's the case, then this MetaV1 event is from OB construction
+  // and should be added to the OB entity. Otherwise, is emitted somewhere else (like AddOrder)
+  // const addBN = Address.fromBigInt(event.params.subject);
+  // const addHS = Address.fromHexString(event.params.subject.toHexString());
+
+  // // let orderBook = new OrderBook(event.address);
+
+  // // let rainMetaV1_ID = Bytes.fromByteArray(
+  // //   crypto.keccak256(Bytes.fromByteArray(event.params.meta))
+  // // );
+  // // let rainMetaV1 = new RainMetaV1(rainMetaV1_ID);
+  // // rainMetaV1.metaBytes = event.params.meta;
+  // // rainMetaV1.orderBook = event.address;
+  // // rainMetaV1.save();
+
+  // let metaData = event.params.meta.toHex().slice(18);
+  // let data = new CBORDecoder(stringToArrayBuffer(metaData));
+  // const res = data.parse();
+
+  // if (res.isSequence) {
+  //   log.info(`res.isSequence: ${res.isSequence}`, []);
+  //   const dataString = res.toString();
+  //   log.info(`dataString: ${dataString}`, []);
+
+  //   let jsonArr = json.fromString(dataString).toArray();
+  //   log.info(`jsonArr.length: ${jsonArr.length}`, []);
+  //   for (let i = 0; i < jsonArr.length; i++) {
+  //     let metaContent = jsonArr[i].toObject();
+  //     // const payload = metaContent.get("0") as JSONValue;
+
+  //     // let id = `${event.transaction.hash.toHex()}-${i.toString()}`;
+  //     // let _metaContentV1 = createMetaContentV1(id, metaContent, rainMetaV1_ID);
+  //   }
+  // } else if (res.isObj) {
+  //   // It's a map and not a sequence
+  // } else {
+  //   return;
+  // }
 }

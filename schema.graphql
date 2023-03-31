@@ -1,6 +1,7 @@
 type OrderBook @entity {
   id: Bytes!
   deployer: Bytes!
+  address: Bytes!
   "The RainMetaV1 decode information"
   meta: [RainMetaV1!] @derivedFrom(field: "orderBook") # Use the CBOR AS library to decode the meta emited by the OB
 }
