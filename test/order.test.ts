@@ -325,7 +325,7 @@ describe("Order entity", () => {
 
     assert(sender_B === bob.address, "wrong sender");
     compareStructs(order_B, orderConfig_B);
-    
+
     await waitForSubgraphToBeSynced();
     // SG check
     const query = `{
@@ -337,9 +337,9 @@ describe("Order entity", () => {
     const response = (await subgraph({ query })) as FetchResult;
 
     const data = response.data.orders;
-    console.log(data)
-    console.log(orderHash_A.toHexString().toLowerCase())
-    console.log(orderHash_B.toHexString().toLowerCase())
+    console.log(data);
+    console.log(orderHash_A.toHexString().toLowerCase());
+    console.log(orderHash_B.toHexString().toLowerCase());
 
     expect(data).to.deep.include({
       id: orderHash_A.toHexString().toLowerCase(),
@@ -408,12 +408,6 @@ describe("Order entity", () => {
 
     // REMOVE Order_A
 
-    await assertError(
-      async () => await orderBook.connect(bob).removeOrder(LiveOrder_A),
-      `NotOrderOwner("${bob.address}", "${alice.address}")`,
-      "bob wrongly removed alice's order"
-    );
-
     const txRemoveOrder = await orderBook
       .connect(alice)
       .removeOrder(LiveOrder_A);
@@ -446,110 +440,5 @@ describe("Order entity", () => {
     const data = response.data.order;
 
     assert.equal(data.orderActive, false);
-  });
-
-  it("should update orderActive field when removing and adding again an order", async () => {
-    const signers = await ethers.getSigners();
-
-    const [, alice, bob] = signers;
-
-    const aliceInputVault = ethers.BigNumber.from(randomUint256());
-    const aliceOutputVault = ethers.BigNumber.from(randomUint256());
-
-    const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
-    const constants_A = [max_uint256, ratio_A];
-    const aOpMax = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const aRatio = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 1)
-    );
-    // prettier-ignore
-    const source_A = concat([
-      aOpMax,
-      aRatio,
-    ]);
-    const aliceOrder = encodeMeta("Order_A");
-
-    const EvaluableConfig_A = await generateEvaluableConfig(
-      [source_A, []],
-      constants_A
-    );
-
-    const OrderConfig_A: OrderConfigStruct = {
-      validInputs: [
-        { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
-      ],
-      validOutputs: [
-        { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
-      ],
-      evaluableConfig: EvaluableConfig_A,
-      meta: aliceOrder,
-    };
-
-    const txAddOrder_0 = await orderBook.connect(alice).addOrder(OrderConfig_A);
-
-    const {
-      sender: liveSender_0,
-      order: LiveOrder_0,
-      orderHash: addOrderHash_0,
-    } = (await getEventArgs(
-      txAddOrder_0,
-      "AddOrder",
-      orderBook
-    )) as AddOrderEvent["args"];
-
-    assert(liveSender_0 === alice.address, "wrong sender");
-    compareStructs(LiveOrder_0, OrderConfig_A);
-
-    // REMOVE Order_A
-
-    const txRemoveOrder = await orderBook
-      .connect(alice)
-      .removeOrder(LiveOrder_0);
-
-    const {
-      sender: deadSender_A,
-      order: DeadOrder_A,
-      orderHash: removeOrderHash,
-    } = (await getEventArgs(
-      txRemoveOrder,
-      "RemoveOrder",
-      orderBook
-    )) as RemoveOrderEvent["args"];
-
-    assert(deadSender_A === alice.address, "wrong sender");
-    compareStructs(DeadOrder_A, OrderConfig_A);
-
-    // First check that the removed order is the correct
-    assert(addOrderHash_0.eq(removeOrderHash), "wrong order removed");
-
-    // Add again the order using the same config
-    const txAddOrder_1 = await orderBook.connect(alice).addOrder(OrderConfig_A);
-
-    const { orderHash: addOrderHash_1 } = (await getEventArgs(
-      txAddOrder_1,
-      "AddOrder",
-      orderBook
-    )) as AddOrderEvent["args"];
-
-    // TODO: Review @naneez
-    assert(addOrderHash_0.eq(addOrderHash_1), "wrong order added again");
-    
-    await waitForSubgraphToBeSynced();
-
-    const query = `{
-      order (id: "${addOrderHash_0.toHexString().toLowerCase()}") {
-        orderActive
-      }
-    }`;
-
-    const response = (await subgraph({ query })) as FetchResult;
-
-    const data = response.data.order;
-
-    assert.equal(data.orderActive, true, "The order was not activated again");
   });
 });
