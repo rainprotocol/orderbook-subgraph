@@ -14,16 +14,18 @@ import assert from "assert";
 import * as path from "path";
 import { deployOrderBook } from "../utils/deploy/orderBook/deploy";
 import { ApolloFetch } from "apollo-fetch";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 export let orderBook: OrderBook;
 export let subgraph: ApolloFetch;
+export let signers: SignerWithAddress[];
 
 before(async () => {
   // Wait for the correct initialization of the graph node
   await waitForGraphNode();
 
   // Making available the Registry (EIP-1820) on local network
-  const signers = await ethers.getSigners();
+  signers = await ethers.getSigners();
   await deploy1820(signers[0]);
 
   orderBook = await deployOrderBook();
