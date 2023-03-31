@@ -36,8 +36,7 @@ type MetaContentV1 @entity {
 # Created with the first AddOrder event, then updated on the corresponding AddOrder/RemoveOrder events
 type Order @entity {
   "The hash of the order"
-  id: ID!
-
+  id: ID! # This value is emitted as Uint256, but you should use the hex string representation (it's a hash)
   "The hash of the transaction"
   transactionHash: Bytes!
 
@@ -77,7 +76,7 @@ type Order @entity {
 
 # Created with AddOrder
 type IO @entity {
-  id: ID!
+  id: ID! # ID = `order.hash() - IO.token - IO.vaultId`
   token: ERC20!
   decimals: Int!
   vault: Vault!
