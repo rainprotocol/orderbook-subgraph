@@ -184,7 +184,11 @@ describe("Order entity", () => {
     const response = (await subgraph({ query })) as FetchResult;
 
     const data = response.data.order;
-    assert.equal(data.transactionHash, txOrder_A.hash.toLowerCase());
+
+    assert.equal(
+      data.transactionHash.toLowerCase(),
+      txOrder_A.hash.toLowerCase()
+    );
     assert.equal(data.owner.id, sender_A.toLowerCase());
 
     assert.equal(data.interpreter, rainterpreter.toLowerCase());
@@ -337,9 +341,6 @@ describe("Order entity", () => {
     const response = (await subgraph({ query })) as FetchResult;
 
     const data = response.data.orders;
-    console.log(data);
-    console.log(orderHash_A.toHexString().toLowerCase());
-    console.log(orderHash_B.toHexString().toLowerCase());
 
     expect(data).to.deep.include({
       id: orderHash_A.toHexString().toLowerCase(),
