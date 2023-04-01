@@ -32,7 +32,6 @@ import {
   getTxTimeblock,
   waitForSubgraphToBeSynced,
 } from "./utils";
-import { exit } from "process";
 
 async function getInterpretersFromDeployer(deployerAddress: string) {
   const expressionDeployer = (await ethers.getContractAt(
