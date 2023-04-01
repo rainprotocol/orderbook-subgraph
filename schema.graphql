@@ -83,7 +83,8 @@ type IO @entity {
 }
 
 # Created and updated whenever an AddOrder event occurs
-# ALSO created and updated when a pair of Clear/AfterClear events occur
+# Created and updated whenever an Deposit event occurs
+# Updated whenever an Withdraw event occurs
 type Vault @entity {
   id: ID! #{vaultId}-{owner}
   "The owner of this Vault"
@@ -98,6 +99,10 @@ type Vault @entity {
   withdraws: [VaultWithdraw!] @derivedFrom(field: "vault") # add whenever a Withdraw event occurs for this {vaultId}-{owner}
 }
 
+# Created and updated whenever an AddOrder event occurs
+# Created and updated whenever an Deposit event occurs
+# Updated whenever an Withdraw event occurs
+# ALSO created and updated when a pair of Clear/AfterClear events occur
 type TokenVault @entity {
   id: ID! #{vaultId}-{owner}-{token}
   "The owner of this Vault"
