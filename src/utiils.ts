@@ -146,7 +146,6 @@ export function createOrder(order: ClearAliceStruct): Order {
     tupleValidInputs.push(changetype<ethereum.Tuple>(VI));
   }
 
-
   let tupleValidOutputs: Array<ethereum.Tuple> = [];
   for (let i = 0; i < order.validOutputs.length; i++) {
     let VO: Array<ethereum.Value> = [
@@ -176,7 +175,7 @@ export function createOrder(order: ClearAliceStruct): Order {
   else return new Order(uint256.toString());
 }
 
-function hexToBI(hexString: string): BigInt {
+function hexToBI(hexString: string): bigint {
   return BigInt.fromUnsignedBytes(
     changetype<Bytes>(Bytes.fromHexString(hexString).reverse())
   );

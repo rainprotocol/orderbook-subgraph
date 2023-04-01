@@ -68,7 +68,9 @@ export function handleAddOrder(event: AddOrder): void {
       event.params.order.validInputs[i].vaultId.toString(),
       event.params.order.owner
     );
-    let input = new IO(`${event.params.orderHash.toHex()}-${token.id.toHex()}-${vault.id}`);
+    let input = new IO(
+      `${event.params.orderHash.toHex()}-${token.id.toHex()}-${vault.id}`
+    );
     input.token = token.id;
     input.decimals = event.params.order.validInputs[i].decimals;
     input.vault = vault.id;
@@ -82,7 +84,9 @@ export function handleAddOrder(event: AddOrder): void {
       event.params.order.validOutputs[i].vaultId.toString(),
       event.params.order.owner
     );
-    let output = new IO(`${event.params.orderHash.toHex()}-${token.id.toHex()}-${vault.id}`);
+    let output = new IO(
+      `${event.params.orderHash.toHex()}-${token.id.toHex()}-${vault.id}`
+    );
     output.token = token.id;
     output.decimals = event.params.order.validOutputs[i].decimals;
     output.vault = vault.id;

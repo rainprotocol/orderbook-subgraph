@@ -2,16 +2,13 @@ import assert from "assert";
 import { expect } from "chai";
 import { FetchResult } from "apollo-fetch";
 import { orderBook, signers, subgraph } from "./0_initialization.test";
-import { RainterpreterExpressionDeployer, ReserveToken18 } from "../typechain";
+import { ReserveToken18 } from "../typechain";
 import {
   MemoryType,
-  ONE,
   Opcode,
-  assertError,
   basicDeploy,
   compareStructs,
   eighteenZeros,
-  fixedPointDiv,
   generateEvaluableConfig,
   max_uint256,
   memoryOperand,
@@ -24,17 +21,11 @@ import { concat } from "ethers/lib/utils";
 import {
   AddOrderEvent,
   DepositEvent,
-  IOStructOutput,
   OrderConfigStruct,
-  RemoveOrderEvent,
   WithdrawConfigStruct,
   WithdrawEvent,
 } from "../typechain/contracts/orderbook/OrderBook";
-import {
-  getEventArgs,
-  getTxTimeblock,
-  waitForSubgraphToBeSynced,
-} from "./utils";
+import { getEventArgs, waitForSubgraphToBeSynced } from "./utils";
 import { DepositConfigStruct } from "../typechain/contracts/orderbook/IOrderBookV1";
 
 describe("Vault entity", () => {
@@ -96,7 +87,6 @@ describe("Vault entity", () => {
       sender: sender_A,
       expressionDeployer: ExpressionDeployer_A,
       order: order_A,
-      orderHash,
     } = (await getEventArgs(
       txOrder_A,
       "AddOrder",
@@ -169,7 +159,7 @@ describe("Vault entity", () => {
     expect(dataOutput.withdraws).to.be.empty;
   });
 
-  it("should query the Vault after deposits", async function() {
+  it("should query the Vault after deposits", async function () {
     const signers = await ethers.getSigners();
 
     const [, alice] = signers;
@@ -207,22 +197,18 @@ describe("Vault entity", () => {
       .connect(alice)
       .deposit(depositConfigStructAlice_B);
 
-    const {
-      sender: depositAliceSender_A,
-      config: depositAliceConfig_A,
-    } = (await getEventArgs(
-      txDepositOrderAlice_A,
-      "Deposit",
-      orderBook
-    )) as DepositEvent["args"];
-    const {
-      sender: depositAliceSender_B,
-      config: depositAliceConfig_B,
-    } = (await getEventArgs(
-      txDepositOrderAlice_B,
-      "Deposit",
-      orderBook
-    )) as DepositEvent["args"];
+    const { sender: depositAliceSender_A, config: depositAliceConfig_A } =
+      (await getEventArgs(
+        txDepositOrderAlice_A,
+        "Deposit",
+        orderBook
+      )) as DepositEvent["args"];
+    const { sender: depositAliceSender_B, config: depositAliceConfig_B } =
+      (await getEventArgs(
+        txDepositOrderAlice_B,
+        "Deposit",
+        orderBook
+      )) as DepositEvent["args"];
 
     // Checking Config A
     assert(depositAliceSender_A === alice.address);
@@ -357,14 +343,12 @@ describe("Vault entity", () => {
       .connect(alice)
       .deposit(depositConfigStructAlice);
 
-    const {
-      sender: depositAliceSender,
-      config: depositAliceConfig,
-    } = (await getEventArgs(
-      txDepositOrderAlice,
-      "Deposit",
-      orderBook
-    )) as DepositEvent["args"];
+    const { sender: depositAliceSender, config: depositAliceConfig } =
+      (await getEventArgs(
+        txDepositOrderAlice,
+        "Deposit",
+        orderBook
+      )) as DepositEvent["args"];
 
     assert(depositAliceSender === alice.address);
     compareStructs(depositAliceConfig, depositConfigStructAlice);
@@ -393,7 +377,7 @@ describe("Vault entity", () => {
     });
   });
 
-  it("should update the Vault after withdrawals from vaults", async function() {
+  it("should update the Vault after withdrawals from vaults", async function () {
     const signers = await ethers.getSigners();
     const [, alice] = signers;
 
@@ -418,14 +402,12 @@ describe("Vault entity", () => {
       .connect(alice)
       .deposit(depositConfigStruct);
 
-    const {
-      sender: depositSender,
-      config: depositConfig,
-    } = (await getEventArgs(
-      txDeposit,
-      "Deposit",
-      orderBook
-    )) as DepositEvent["args"];
+    const { sender: depositSender, config: depositConfig } =
+      (await getEventArgs(
+        txDeposit,
+        "Deposit",
+        orderBook
+      )) as DepositEvent["args"];
 
     assert(depositSender === alice.address);
     compareStructs(depositConfig, depositConfigStruct);
@@ -442,14 +424,12 @@ describe("Vault entity", () => {
       .connect(alice)
       .withdraw(withdrawConfigStruct);
 
-    const {
-      sender: withdrawSender,
-      config: withdrawConfig,
-    } = (await getEventArgs(
-      txWithdraw,
-      "Withdraw",
-      orderBook
-    )) as WithdrawEvent["args"];
+    const { sender: withdrawSender, config: withdrawConfig } =
+      (await getEventArgs(
+        txWithdraw,
+        "Withdraw",
+        orderBook
+      )) as WithdrawEvent["args"];
 
     assert(withdrawSender === alice.address);
     compareStructs(withdrawConfig, withdrawConfigStruct);

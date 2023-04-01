@@ -1,12 +1,13 @@
 import { execSync } from "child_process";
 import fs from "fs";
 import { Contract, ContractTransaction } from "ethers";
-import { Result, hexlify } from "ethers/lib/utils";
+import { Result } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import * as path from "path";
 import { ApolloFetch, createApolloFetch } from "apollo-fetch";
 
-export const META_MAGIC_NUMBER_V1 = 0xff0a89c674ee7874;
+export const META_MAGIC_NUMBER_V1 = BigInt(0xff0a89c674ee7874n);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const writeFile = (_path: string, file: any): void => {
   try {
     fs.writeFileSync(_path, file);
@@ -224,8 +225,10 @@ function sleep(milliseconds: number) {
 }
 
 export const waitForGraphNode = async (): Promise<void> => {
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     try {
+      //@ts-expect-error fetch is already available on node
       const response = await fetch("http://localhost:8030");
       if (response.status === 200) {
         break;

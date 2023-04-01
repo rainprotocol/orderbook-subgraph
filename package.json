@@ -15,7 +15,11 @@
   "scripts": {
     "test": "hardhat test",
     "codegen": "graph codegen",
-    "build": "graph build"
+    "build": "graph build",
+    "lint": "eslint .",
+    "lint-fix": "eslint . --fix",
+    "prettier": "prettier . '!./docker' --check",
+    "prettier-write": "prettier . '!./docker' --write"
   },
   "dependencies": {
     "@chainlink/contracts": "^0.5.1",
@@ -37,11 +41,20 @@
     "@types/chai": "^4.3.4",
     "@types/mocha": "^10.0.1",
     "@types/string-math": "=1.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.57.0",
+    "@typescript-eslint/parser": "^5.57.0",
     "apollo-fetch": "^0.7.0",
     "assert": "^2.0.0",
     "cbor": "=8.1.0",
     "chai": "^4.3.7",
     "dotenv": "^16.0.3",
+    "eslint": "^8.37.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-promise": "^6.1.1",
     "rainlang": "rainprotocol/rainlang#58a5deee3e7d28058c0a7be8d6e8e51f9021326e",
     "string-math": "=1.2.2",
     "ts-node": "^10.9.1",

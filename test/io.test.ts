@@ -1,17 +1,13 @@
 import assert from "assert";
-import { expect } from "chai";
 import { FetchResult } from "apollo-fetch";
 import { orderBook, signers, subgraph } from "./0_initialization.test";
-import { RainterpreterExpressionDeployer, ReserveToken18 } from "../typechain";
+import { ReserveToken18 } from "../typechain";
 import {
   MemoryType,
-  ONE,
   Opcode,
-  assertError,
   basicDeploy,
   compareStructs,
   eighteenZeros,
-  fixedPointDiv,
   generateEvaluableConfig,
   max_uint256,
   memoryOperand,
@@ -23,28 +19,9 @@ import { encodeMeta } from "../utils/orderBook/order";
 import { concat } from "ethers/lib/utils";
 import {
   AddOrderEvent,
-  IOStructOutput,
   OrderConfigStruct,
-  RemoveOrderEvent,
 } from "../typechain/contracts/orderbook/OrderBook";
-import {
-  getEventArgs,
-  getTxTimeblock,
-  waitForSubgraphToBeSynced,
-} from "./utils";
-
-async function getInterpretersFromDeployer(deployerAddress: string) {
-  const expressionDeployer = (await ethers.getContractAt(
-    "RainterpreterExpressionDeployer",
-    deployerAddress
-  )) as RainterpreterExpressionDeployer;
-
-  return {
-    deployer: deployerAddress,
-    store: await expressionDeployer.store(),
-    rainterpreter: await expressionDeployer.interpreter(),
-  };
-}
+import { getEventArgs, waitForSubgraphToBeSynced } from "./utils";
 
 describe("IO entity", () => {
   let tokenA: ReserveToken18;
@@ -56,12 +33,10 @@ describe("IO entity", () => {
   });
 
   it("should query the IO entities of Inputs after adding an order", async () => {
-    const [, alice, bob] = signers;
+    const [, alice] = signers;
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
-    const bobInputVault = ethers.BigNumber.from(randomUint256());
-    const bobOutputVault = ethers.BigNumber.from(randomUint256());
 
     // TODO: This is a WRONG encoding meta (FIX: @naneez)
     const aliceOrder = encodeMeta("Order_A");
@@ -162,12 +137,10 @@ describe("IO entity", () => {
   });
 
   it("should query the IO entities of Outputs after adding an order", async () => {
-    const [, alice, bob] = signers;
+    const [, alice] = signers;
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
-    const bobInputVault = ethers.BigNumber.from(randomUint256());
-    const bobOutputVault = ethers.BigNumber.from(randomUint256());
 
     // TODO: This is a WRONG encoding meta (FIX: @naneez)
     const aliceOrder = encodeMeta("Order_A");

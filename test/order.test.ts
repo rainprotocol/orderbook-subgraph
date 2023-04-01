@@ -7,7 +7,6 @@ import {
   MemoryType,
   ONE,
   Opcode,
-  assertError,
   basicDeploy,
   compareStructs,
   eighteenZeros,
@@ -54,6 +53,7 @@ async function getInterpretersFromDeployer(deployerAddress: string) {
 function checkIO(
   hexOrderHash_: string,
   arrayIO_: IOStructOutput[],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   dataIO_: any
 ) {
   const length = arrayIO_.length;
@@ -79,12 +79,10 @@ describe("Order entity", () => {
   });
 
   it("should query the Order after adding an order", async () => {
-    const [, alice, bob] = signers;
+    const [, alice] = signers;
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
-    const bobInputVault = ethers.BigNumber.from(randomUint256());
-    const bobOutputVault = ethers.BigNumber.from(randomUint256());
 
     // TODO: This is a WRONG encoding meta (FIX: @naneez)
     const aliceOrder = encodeMeta("Order_A");
@@ -147,11 +145,8 @@ describe("Order entity", () => {
     // Subgraph check
     // Get Interpreters from ExpressionDeployer address
 
-    const {
-      deployer,
-      store,
-      rainterpreter,
-    } = await getInterpretersFromDeployer(ExpressionDeployer_A);
+    const { deployer, store, rainterpreter } =
+      await getInterpretersFromDeployer(ExpressionDeployer_A);
 
     const [, addTimestamp] = await getTxTimeblock(txOrder_A);
 
@@ -353,7 +348,7 @@ describe("Order entity", () => {
   it("should update the orderActive field when removing an order", async () => {
     const signers = await ethers.getSigners();
 
-    const [, alice, bob] = signers;
+    const [, alice] = signers;
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
