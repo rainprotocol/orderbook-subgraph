@@ -112,7 +112,9 @@ describe("Vault entity", () => {
 
     const query = `{
       vaultInput: vault (id: "${vault_input_ID}") {
-        owner
+        owner {
+          id
+        }
         tokenVaults {
           id
         }
@@ -124,7 +126,9 @@ describe("Vault entity", () => {
         }
       }
       vaultOutput: vault (id: "${vault_output_ID}") {
-        owner
+        owner {
+          id
+        }
         tokenVaults {
           id
         }
@@ -138,15 +142,12 @@ describe("Vault entity", () => {
     }`;
 
     const response = (await subgraph({ query })) as FetchResult;
-    console.log(JSON.stringify(response, null, 2));
-    console.log("vault_input_ID", vault_input_ID);
-    console.log("vault_output_ID", vault_output_ID);
 
     const dataInput = response.data.vaultInput;
     const dataOutput = response.data.vaultOutput;
 
     // VaultInput
-    assert.equal(dataInput.owner, alice.address.toLowerCase());
+    assert.equal(dataInput.owner.id, alice.address.toLowerCase());
     expect(dataInput.tokenVaults).to.deep.include({
       id: tokenVault_Input_ID,
     });
@@ -154,7 +155,7 @@ describe("Vault entity", () => {
     expect(dataInput.withdraws).to.be.empty;
 
     // VaultOutput
-    assert.equal(dataOutput.owner, alice.address.toLowerCase());
+    assert.equal(dataOutput.owner.id, alice.address.toLowerCase());
     expect(dataOutput.tokenVaults).to.deep.include({
       id: tokenVault_Output_ID,
     });
@@ -237,7 +238,9 @@ describe("Vault entity", () => {
 
     const query = `{
         vault (id: "${vault_ID}") {
-          owner
+          owner {
+            id
+          }
           tokenVaults {
             id
           }
@@ -251,7 +254,7 @@ describe("Vault entity", () => {
 
     const data = response.data.vault;
 
-    assert.equal(data.owner, alice.address.toLowerCase());
+    assert.equal(data.owner.id, alice.address.toLowerCase());
     expect(data.tokenVaults).to.deep.include({
       id: tokenVault_A_ID,
     });

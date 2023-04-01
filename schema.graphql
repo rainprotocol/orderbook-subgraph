@@ -86,7 +86,7 @@ type IO @entity {
 # Created and updated whenever an Deposit event occurs
 # Updated whenever an Withdraw event occurs
 type Vault @entity {
-  id: ID! #{vaultId}
+  id: ID! #{vaultId}-{owner}
   "The owner of this Vault"
   owner: Account!
 
