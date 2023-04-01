@@ -44,6 +44,8 @@ describe("Vault entity", () => {
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
     tokenB = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
+    await tokenA.initialize();
+    await tokenB.initialize();
   });
 
   it("should query the Vault after adding an order", async () => {
@@ -325,7 +327,6 @@ describe("Vault entity", () => {
       sender: sender_A,
       expressionDeployer: ExpressionDeployer_A,
       order: order_A,
-      orderHash,
     } = (await getEventArgs(
       txOrder_A,
       "AddOrder",
@@ -343,7 +344,7 @@ describe("Vault entity", () => {
     const amount = ethers.BigNumber.from("1000" + eighteenZeros);
     await tokenA.transfer(alice.address, amount);
     const depositConfigStructAlice: DepositConfigStruct = {
-      token: tokenB.address,
+      token: tokenA.address,
       vaultId: aliceInputVault,
       amount: amount,
     };
