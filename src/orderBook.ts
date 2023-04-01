@@ -36,22 +36,14 @@ import {
 } from "@graphprotocol/graph-ts";
 import {
   createAccount,
-  createMetaContentV1,
   createOrder,
   createToken,
   createTokenVault,
   createVault,
   hashTakeOrderConfig,
-  stringToArrayBuffer,
 } from "./utiils";
-import { CBORDecoder } from "@rainprotocol/assemblyscript-cbor";
-import {
-  Obj,
-  Sequence,
-} from "@rainprotocol/assemblyscript-cbor/assembly/types";
 
 export function handleAddOrder(event: AddOrder): void {
-  log.info("OrderHash :{}", [event.params.orderHash.toHex()]);
   let order = new Order(event.params.orderHash.toHex());
   order.transactionHash = event.transaction.hash;
   order.owner = createAccount(event.params.order.owner).id;
@@ -69,7 +61,7 @@ export function handleAddOrder(event: AddOrder): void {
       event.params.order.owner
     );
     let input = new IO(
-      `${event.params.orderHash.toHex()}-${token.id.toHex()}-${vault.id}`
+      `${event.params.orderHash.toHex()}-${token.id.toHex()}-${event.params.order.validInputs[i].vaultId}`
     );
     input.token = token.id;
     input.decimals = event.params.order.validInputs[i].decimals;
@@ -85,7 +77,7 @@ export function handleAddOrder(event: AddOrder): void {
       event.params.order.owner
     );
     let output = new IO(
-      `${event.params.orderHash.toHex()}-${token.id.toHex()}-${vault.id}`
+      `${event.params.orderHash.toHex()}-${token.id.toHex()}-${event.params.order.validOutputs[i].vaultId}`
     );
     output.token = token.id;
     output.decimals = event.params.order.validOutputs[i].decimals;
@@ -143,11 +135,11 @@ export function handleClear(event: Clear): void {
   bounty.clearer = createAccount(event.params.sender).id;
   bounty.orderClear = orderClear.id;
   bounty.bountyVaultA = createVault(
-    event.params.clearConfig.aliceBountyVaultId.toHexString(),
+    event.params.clearConfig.aliceBountyVaultId.toString(),
     event.params.sender
   ).id;
   bounty.bountyVaultB = createVault(
-    event.params.clearConfig.bobBountyVaultId.toHexString(),
+    event.params.clearConfig.bobBountyVaultId.toString(),
     event.params.sender
   ).id;
 
@@ -168,7 +160,7 @@ export function handleContext(event: Context): void {}
 
 export function handleDeposit(event: Deposit): void {
   let tokenVault = createTokenVault(
-    event.params.config.vaultId.toHex(),
+    event.params.config.vaultId.toString(),
     event.params.sender,
     event.params.config.token
   );
@@ -183,11 +175,12 @@ export function handleDeposit(event: Deposit): void {
   vaultDeposit.token = createToken(event.params.config.token).id;
   vaultDeposit.vaultId = event.params.config.vaultId;
   vaultDeposit.vault = createVault(
-    event.params.config.vaultId.toHex(),
+    event.params.config.vaultId.toString(),
     event.params.sender
   ).id;
   vaultDeposit.amount = event.params.config.amount;
   vaultDeposit.tokenVault = tokenVault.id;
+  vaultDeposit.vault = createVault(event.params.config.vaultId.toString(), event.params.sender).id;
   vaultDeposit.save();
 }
 
@@ -197,7 +190,13 @@ export function handleOrderNotFound(event: OrderNotFound): void {}
 
 export function handleOrderZeroAmount(event: OrderZeroAmount): void {}
 
-export function handleRemoveOrder(event: RemoveOrder): void {}
+export function handleRemoveOrder(event: RemoveOrder): void {
+  let order = Order.load(event.params.orderHash.toHex());
+  if(order){
+    order.orderActive = false;
+    order.save();
+  }
+}
 
 export function handleTakeOrder(event: TakeOrder): void {
   let orderEntity = new TakeOrderEntity(
@@ -226,7 +225,7 @@ export function handleTakeOrder(event: TakeOrder): void {
 
 export function handleWithdraw(event: Withdraw): void {
   let tokenVault = createTokenVault(
-    event.params.config.vaultId.toHex(),
+    event.params.config.vaultId.toString(),
     event.params.sender,
     event.params.config.token
   );
@@ -241,12 +240,13 @@ export function handleWithdraw(event: Withdraw): void {
   vaultWithdraw.token = createToken(event.params.config.token).id;
   vaultWithdraw.vaultId = event.params.config.vaultId;
   vaultWithdraw.vault = createVault(
-    event.params.config.vaultId.toHex(),
+    event.params.config.vaultId.toString(),
     event.params.sender
   ).id;
   vaultWithdraw.requestedAmount = event.params.config.amount;
   vaultWithdraw.amount = event.params.amount;
   vaultWithdraw.tokenVault = tokenVault.id;
+  vaultWithdraw.vault = createVault(event.params.config.vaultId.toString(), event.params.sender).id;
   vaultWithdraw.save();
 }
 

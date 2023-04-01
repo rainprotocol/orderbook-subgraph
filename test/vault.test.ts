@@ -138,6 +138,9 @@ describe("Vault entity", () => {
     }`;
 
     const response = (await subgraph({ query })) as FetchResult;
+    console.log(JSON.stringify(response, null, 2));
+    console.log("vault_input_ID", vault_input_ID);
+    console.log("vault_output_ID", vault_output_ID);
 
     const dataInput = response.data.vaultInput;
     const dataOutput = response.data.vaultOutput;

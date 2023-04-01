@@ -6,9 +6,9 @@ dataSources:
     name: OrderBook
     network: localhost
     source:
-      address: "0xFD6F7A6a5c21A3f503EBaE7a473639974379c351"
+      address: "0x987e855776C03A4682639eEb14e65b3089EE6310"
       abi: OrderBook
-      startBlock: 183
+      startBlock: 369
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -47,8 +47,8 @@ dataSources:
           handler: handleTakeOrder
         - event: Withdraw(address,(address,uint256,uint256),uint256)
           handler: handleWithdraw
-      file: ./src/orderBook.ts
-templates:
+      file: ./src/orderBook.ts  
+templates: 
   - kind: ethereum/contract
     name: ERC20Template
     network: localhost

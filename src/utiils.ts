@@ -20,8 +20,6 @@ import {
 import { ReserveToken } from "../generated/OrderBook/ReserveToken";
 import {
   ClearAliceStruct,
-  ClearBobStruct,
-  TakeOrder,
   TakeOrderConfigStruct,
 } from "../generated/OrderBook/OrderBook";
 
@@ -99,12 +97,10 @@ export function createToken(address: Bytes): ERC20 {
 }
 
 export function createVault(vaultId: string, owner: Bytes): Vault {
-  let vault = new Vault(`${vaultId}`);
+  let vault = Vault.load(`${vaultId}-${owner.toHex()}`);
   if (!vault) {
-    vault = new Vault(`${vaultId}`);
+    vault = new Vault(`${vaultId}-${owner.toHex()}`);
     vault.owner = createAccount(owner).id;
-    vault.deposits = [];
-    vault.withdraws = [];
     vault.save();
   }
   return vault;
@@ -112,17 +108,19 @@ export function createVault(vaultId: string, owner: Bytes): Vault {
 
 export function createTokenVault(
   vaultId: string,
-  owner: Bytes,
+  owner: Bytes, 
   token: Bytes
 ): TokenVault {
-  let tokenVault = TokenVault.load(`${vaultId}-${owner}-${token}`);
+  let tokenVault = TokenVault.load(`${vaultId}-${owner.toHex()}-${token.toHex()}`);
   if (!tokenVault) {
-    tokenVault = new TokenVault(`${vaultId}-${owner}-${token}`);
+    tokenVault = new TokenVault(`${vaultId}-${owner.toHex()}-${token.toHex()}`);
     tokenVault.owner = createAccount(owner).id;
     tokenVault.token = createToken(token).id;
     tokenVault.balance = BigInt.zero();
+    tokenVault.vault = createVault(vaultId, owner).id;
     tokenVault.save();
   }
+  log.info("Valut : {} for tokenVault : {}", [tokenVault.vault, tokenVault.id])
   return tokenVault;
 }
 
@@ -175,7 +173,7 @@ export function createOrder(order: ClearAliceStruct): Order {
   else return new Order(uint256.toString());
 }
 
-function hexToBI(hexString: string): bigint {
+function hexToBI(hexString: string): BigInt {
   return BigInt.fromUnsignedBytes(
     changetype<Bytes>(Bytes.fromHexString(hexString).reverse())
   );

@@ -407,6 +407,8 @@ describe("Order entity", () => {
       .connect(alice)
       .removeOrder(LiveOrder_A);
 
+    await waitForSubgraphToBeSynced();
+
     const {
       sender: deadSender_A,
       order: DeadOrder_A,

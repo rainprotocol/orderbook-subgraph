@@ -5,7 +5,7 @@ type OrderBook @entity {
   "The RainMetaV1 decode information"
   meta: [RainMetaV1!] # Use the CBOR AS library to decode the meta emitted by the OB
 }
-
+ 
 type RainMetaV1 @entity {
   "Hash of the meta emitted by the contract"
   id: Bytes! # Hash of the meta emitted by the contract. Including the MagicNumber.
@@ -86,7 +86,7 @@ type IO @entity {
 # Created and updated whenever an Deposit event occurs
 # Updated whenever an Withdraw event occurs
 type Vault @entity {
-  id: ID! #{vaultId}-{owner}
+  id: ID! #{vaultId}
   "The owner of this Vault"
   owner: Account!
 

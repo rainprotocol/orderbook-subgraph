@@ -235,7 +235,7 @@ export const waitForGraphNode = async (): Promise<void> => {
       }
     } catch (error) {
       console.log("graph node not ready");
-      await sleep(1000 * 2);
+      await sleep(100);
     }
   }
 };
