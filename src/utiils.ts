@@ -120,7 +120,6 @@ export function createTokenVault(
     tokenVault.vault = createVault(vaultId, owner).id;
     tokenVault.save();
   }
-  log.info("Valut : {} for tokenVault : {}", [tokenVault.vault, tokenVault.id])
   return tokenVault;
 }
 
