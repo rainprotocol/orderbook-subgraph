@@ -6,6 +6,7 @@ import {
   OrderClear,
   OrderClearStateChange,
   TakeOrderEntity,
+  TokenVault,
   VaultDeposit,
   VaultWithdraw,
 } from "../generated/schema";
@@ -37,6 +38,7 @@ import {
 import {
   createAccount,
   createOrder,
+  createOrderClear,
   createToken,
   createTokenVault,
   createVault,
@@ -61,13 +63,28 @@ export function handleAddOrder(event: AddOrder): void {
       event.params.order.owner
     );
     let input = new IO(
-      `${event.params.orderHash.toHex()}-${token.id.toHex()}-${event.params.order.validInputs[i].vaultId}`
+      `${event.params.orderHash.toHex()}-${token.id.toHex()}-${
+        event.params.order.validInputs[i].vaultId
+      }`
     );
     input.token = token.id;
     input.decimals = event.params.order.validInputs[i].decimals;
     input.vault = vault.id;
     input.order = event.params.orderHash.toHex();
     input.save();
+
+    let tokenVault = createTokenVault(
+      event.params.order.validInputs[i].vaultId.toString(),
+      event.params.sender,
+      event.params.order.validInputs[i].token
+    );
+
+    if (tokenVault) {
+      let orders = tokenVault.orders;
+      if (orders) orders.push(order.id);
+      tokenVault.orders = orders;
+      tokenVault.save();
+    }
   }
 
   for (let i = 0; i < event.params.order.validOutputs.length; i++) {
@@ -77,13 +94,28 @@ export function handleAddOrder(event: AddOrder): void {
       event.params.order.owner
     );
     let output = new IO(
-      `${event.params.orderHash.toHex()}-${token.id.toHex()}-${event.params.order.validOutputs[i].vaultId}`
+      `${event.params.orderHash.toHex()}-${token.id.toHex()}-${
+        event.params.order.validOutputs[i].vaultId
+      }`
     );
     output.token = token.id;
     output.decimals = event.params.order.validOutputs[i].decimals;
     output.vault = vault.id;
     output.order = event.params.orderHash.toHex();
     output.save();
+
+    let tokenVault = createTokenVault(
+      event.params.order.validOutputs[i].vaultId.toString(),
+      event.params.sender,
+      event.params.order.validOutputs[i].token
+    );
+
+    if (tokenVault) {
+      let orders = tokenVault.orders;
+      if (orders) orders.push(order.id);
+      tokenVault.orders = orders;
+      tokenVault.save();
+    }
   }
 
   order.timestamp = event.block.timestamp;
@@ -114,7 +146,7 @@ export function handleAfterClear(event: AfterClear): void {
 }
 
 export function handleClear(event: Clear): void {
-  let orderClear = new OrderClear(event.block.timestamp.toString());
+  let orderClear = createOrderClear(event.transaction.hash);
   orderClear.sender = createAccount(event.params.sender).id;
   orderClear.clearer = createAccount(event.params.sender).id;
   orderClear.orderA = createOrder(event.params.alice).id;
@@ -180,7 +212,10 @@ export function handleDeposit(event: Deposit): void {
   ).id;
   vaultDeposit.amount = event.params.config.amount;
   vaultDeposit.tokenVault = tokenVault.id;
-  vaultDeposit.vault = createVault(event.params.config.vaultId.toString(), event.params.sender).id;
+  vaultDeposit.vault = createVault(
+    event.params.config.vaultId.toString(),
+    event.params.sender
+  ).id;
   vaultDeposit.save();
 }
 
@@ -192,7 +227,7 @@ export function handleOrderZeroAmount(event: OrderZeroAmount): void {}
 
 export function handleRemoveOrder(event: RemoveOrder): void {
   let order = Order.load(event.params.orderHash.toHex());
-  if(order){
+  if (order) {
     order.orderActive = false;
     order.save();
   }
@@ -246,7 +281,10 @@ export function handleWithdraw(event: Withdraw): void {
   vaultWithdraw.requestedAmount = event.params.config.amount;
   vaultWithdraw.amount = event.params.amount;
   vaultWithdraw.tokenVault = tokenVault.id;
-  vaultWithdraw.vault = createVault(event.params.config.vaultId.toString(), event.params.sender).id;
+  vaultWithdraw.vault = createVault(
+    event.params.config.vaultId.toString(),
+    event.params.sender
+  ).id;
   vaultWithdraw.save();
 }
 

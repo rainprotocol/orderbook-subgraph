@@ -14,6 +14,7 @@ import {
   ERC20,
   MetaContentV1,
   Order,
+  OrderClear,
   TokenVault,
   Vault,
 } from "../generated/schema";
@@ -108,19 +109,21 @@ export function createVault(vaultId: string, owner: Bytes): Vault {
 
 export function createTokenVault(
   vaultId: string,
-  owner: Bytes, 
+  owner: Bytes,
   token: Bytes
 ): TokenVault {
-  let tokenVault = TokenVault.load(`${vaultId}-${owner.toHex()}-${token.toHex()}`);
+  let tokenVault = TokenVault.load(
+    `${vaultId}-${owner.toHex()}-${token.toHex()}`
+  );
   if (!tokenVault) {
     tokenVault = new TokenVault(`${vaultId}-${owner.toHex()}-${token.toHex()}`);
     tokenVault.owner = createAccount(owner).id;
     tokenVault.token = createToken(token).id;
     tokenVault.balance = BigInt.zero();
     tokenVault.vault = createVault(vaultId, owner).id;
+    tokenVault.orders = [];
     tokenVault.save();
   }
-  log.info("Valut : {} for tokenVault : {}", [tokenVault.vault, tokenVault.id])
   return tokenVault;
 }
 
@@ -203,4 +206,22 @@ export function hashTakeOrderConfig(config: TakeOrderConfigStruct): string {
   let encodedOrder = ethereum.encode(ethereum.Value.fromTuple(tuple))!;
   let keccak256 = crypto.keccak256(encodedOrder as ByteArray);
   return keccak256.toHex();
+}
+
+export function createOrderClear(txHash: Bytes): OrderClear {
+  for (let i = 0; ; i++) {
+    let tupleArray: Array<ethereum.Value> = [
+      ethereum.Value.fromBytes(txHash),
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(i)),
+    ];
+
+    let tuple = changetype<ethereum.Tuple>(tupleArray);
+    let encodedOrder = ethereum.encode(ethereum.Value.fromTuple(tuple))!;
+    let keccak256 = crypto.keccak256(encodedOrder as ByteArray);
+    let orderClear = OrderClear.load(keccak256.toHex());
+    if (!orderClear) {
+      return new OrderClear(keccak256.toHex());
+    }
+  }
+  return new OrderClear("");
 }

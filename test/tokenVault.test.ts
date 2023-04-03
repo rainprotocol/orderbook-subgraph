@@ -37,7 +37,7 @@ import {
 import { getEventArgs, waitForSubgraphToBeSynced } from "./utils";
 import { DepositConfigStruct } from "../typechain/contracts/orderbook/IOrderBookV1";
 
-describe("TokenVault entity", () => {
+describe.only("TokenVault entity", () => {
   let tokenA: ReserveToken18;
   let tokenB: ReserveToken18;
 
@@ -168,8 +168,8 @@ describe("TokenVault entity", () => {
     // TokenVaultInput
     assert.equal(dataInput.balance, 0);
     assert.equal(dataInput.owner.id, alice.address.toLowerCase());
-    assert.equal(dataInput.vault.id, vault_output_ID);
-    assert.equal(dataInput.token.id, tokenB.address.toLowerCase());
+    assert.equal(dataInput.vault.id, vault_input_ID);
+    assert.equal(dataInput.token.id, tokenA.address.toLowerCase());
     expect(dataInput.orders).to.deep.include({
       id: orderHash.toHexString().toLowerCase(),
     });
@@ -178,8 +178,8 @@ describe("TokenVault entity", () => {
     // TokenVaultOutput
     assert.equal(dataOutput.balance, 0);
     assert.equal(dataOutput.owner.id, alice.address.toLowerCase());
-    assert.equal(dataOutput.vault.id, vault_input_ID);
-    assert.equal(dataOutput.token.id, tokenA.address.toLowerCase());
+    assert.equal(dataOutput.vault.id, vault_output_ID);
+    assert.equal(dataOutput.token.id, tokenB.address.toLowerCase());
     expect(dataOutput.orders).to.deep.include({
       id: orderHash.toHexString().toLowerCase(),
     });
@@ -622,7 +622,7 @@ describe("TokenVault entity", () => {
 
     const response_1 = (await subgraph({ query: query_1 })) as FetchResult;
 
-    const data_1 = response_1.data.vault;
+    const data_1 = response_1.data.tokenVault;
 
     assert.equal(
       data_1.balance,
@@ -961,7 +961,8 @@ describe("TokenVault entity", () => {
     }`;
 
     const response_2 = (await subgraph({ query: query_2 })) as FetchResult;
-
+    console.log(JSON.stringify(response_2, null, 2));
+    console.log({ tokenVault_Input_Alice_ID });
     const data_2 = response_2.data;
 
     // Alice check
@@ -1190,7 +1191,6 @@ describe("TokenVault entity", () => {
     }`;
 
     const response = (await subgraph({ query })) as FetchResult;
-
     const dataInput = response.data.tokenVaultInput;
     const dataOutput = response.data.tokenVaultOutput;
 
