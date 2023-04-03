@@ -19,3 +19,4 @@ generated
 /docker/**/*
 /docker/*
 /docker/data/postgres
+/scripts

@@ -14,4 +14,4 @@ subgraph.yaml
 build
 generated
 docker/data
-scripts/**/*.js
+/scripts

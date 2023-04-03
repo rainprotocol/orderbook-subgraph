@@ -88,6 +88,7 @@ export const exec = (cmd: string): string | Buffer => {
   try {
     return execSync(cmd, { cwd: srcDir, stdio: "inherit" });
   } catch (e) {
+    console.log(e);
     throw new Error(`Failed to run command \`${cmd}\``);
   }
 };

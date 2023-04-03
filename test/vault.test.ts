@@ -163,7 +163,7 @@ describe("Vault entity", () => {
     expect(dataOutput.withdraws).to.be.empty;
   });
 
-  it("should query the Vault after deposits", async function () {
+  it("should update the Vault after deposits", async function () {
     const signers = await ethers.getSigners();
 
     const [, alice] = signers;

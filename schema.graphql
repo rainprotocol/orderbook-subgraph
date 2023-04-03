@@ -5,7 +5,7 @@ type OrderBook @entity {
   "The RainMetaV1 decode information"
   meta: [RainMetaV1!] # Use the CBOR AS library to decode the meta emitted by the OB
 }
- 
+
 type RainMetaV1 @entity {
   "Hash of the meta emitted by the contract"
   id: Bytes! # Hash of the meta emitted by the contract. Including the MagicNumber.
@@ -104,9 +104,12 @@ type Vault @entity {
 # Updated whenever an Withdraw event occurs
 # ALSO created and updated when a pair of Clear/AfterClear events occur
 type TokenVault @entity {
-  id: ID! #{vaultId}-{owner}-{token}
+  #{vaultId}-{owner}-{token}
+  id: ID!
+
+  # From Deposit.sender / Withdraw.sender
   "The owner of this Vault"
-  owner: Account! # From Deposit.sender / Withdraw.sender
+  owner: Account!
   "The id of this vault"
   vault: Vault!
 
@@ -119,13 +122,13 @@ type TokenVault @entity {
   # OR AfterClear.stateChange.bInput when there is a Clear event that matches {Clear.b_.inputVault}-{Clear.b_.owner}-{Clear.b_.inputToken}
   # Subtract from this value:
   # Withdraw.amount when there is a matching Withdraw event for {vaultId}-{owner}-{token}
-
+  # updated on every Deposit/Withdraw event that occurs for this {vaultId}-{owner}-{token}
   "The balance of this token, for this vault, for this owner"
-  balance: BigInt! # updated on every Deposit/Withdraw event that occurs for this {vaultId}-{owner}-{token}
+  balance: BigInt!
+
   # Add to array:
   # when {Order.inputVault}-{Order.owner}-{Order.inputToken} match this TokenVault
   # OR when {Order.outputVault}-{Order.owner}-{Order.outputToken} match this TokenVault
-
   "Orders that reference this vault, owner and token"
   orders: [Order!]
 
