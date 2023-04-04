@@ -305,8 +305,6 @@ describe("TokenVault entity", () => {
   });
 
   it("should update the balance of the TokenVaults after deposits", async function () {
-    const signers = await ethers.getSigners();
-
     const [, alice, bob] = signers;
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
@@ -514,7 +512,6 @@ describe("TokenVault entity", () => {
   });
 
   it("should update the TokenVaults after withdrawal", async function () {
-    const signers = await ethers.getSigners();
     const [, alice] = signers;
 
     const vaultId = ethers.BigNumber.from(1);
@@ -632,8 +629,6 @@ describe("TokenVault entity", () => {
   });
 
   it("should update the balance of the TokenVault after clearing orders", async function () {
-    const signers = await ethers.getSigners();
-
     const [, alice, bob, bountyBot] = signers;
 
     // Variables to track the changes on the vaults
@@ -991,8 +986,6 @@ describe("TokenVault entity", () => {
   });
 
   it("should add the ClearOrder to the TokenVault after clearing orders", async function () {
-    const signers = await ethers.getSigners();
-
     const [, alice, bob, bountyBot] = signers;
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());

@@ -164,8 +164,6 @@ describe("Vault entity", () => {
   });
 
   it("should update the Vault after deposits", async function () {
-    const signers = await ethers.getSigners();
-
     const [, alice] = signers;
 
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -384,7 +382,6 @@ describe("Vault entity", () => {
   });
 
   it("should update the Vault after withdrawals from vaults", async function () {
-    const signers = await ethers.getSigners();
     const [, alice] = signers;
 
     const vaultId = ethers.BigNumber.from(1);

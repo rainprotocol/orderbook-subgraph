@@ -208,8 +208,6 @@ describe("Order entity", () => {
   });
 
   it("should query multiple Orders when adding orders", async () => {
-    const signers = await ethers.getSigners();
-
     const [, alice, bob] = signers;
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
@@ -346,8 +344,6 @@ describe("Order entity", () => {
   });
 
   it("should update the orderActive field when removing an order", async () => {
-    const signers = await ethers.getSigners();
-
     const [, alice] = signers;
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());

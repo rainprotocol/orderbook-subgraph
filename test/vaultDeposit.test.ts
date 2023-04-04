@@ -30,8 +30,6 @@ describe("VaultDeposit entity", () => {
   });
 
   it("should query the VaultDeposit after a deposit", async function () {
-    const signers = await ethers.getSigners();
-
     const [, alice] = signers;
 
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
