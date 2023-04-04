@@ -956,8 +956,7 @@ describe("TokenVault entity", () => {
     }`;
 
     const response_2 = (await subgraph({ query: query_2 })) as FetchResult;
-    console.log(JSON.stringify(response_2, null, 2));
-    console.log({ tokenVault_Input_Alice_ID });
+
     const data_2 = response_2.data;
 
     // Alice check

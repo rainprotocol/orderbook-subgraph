@@ -146,7 +146,7 @@ export function handleAfterClear(event: AfterClear): void {
 }
 
 export function handleClear(event: Clear): void {
-  let orderClear = createOrderClear(event.transaction.hash);
+  let orderClear = createOrderClear(event.transaction.hash.toHex());
   orderClear.sender = createAccount(event.params.sender).id;
   orderClear.clearer = createAccount(event.params.sender).id;
   orderClear.orderA = createOrder(event.params.alice).id;

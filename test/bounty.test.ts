@@ -259,6 +259,7 @@ describe("Bounty entity", () => {
     }`;
 
     const response = (await subgraph({ query })) as FetchResult;
+
     const data = response.data.orderClear.bounty;
 
     const { aliceOutput, bobOutput, aliceInput, bobInput } = clearStateChange;
@@ -269,10 +270,10 @@ describe("Bounty entity", () => {
     assert.equal(data.clearer.id, bountyBot.address.toLowerCase());
     assert.equal(data.orderClear.id, orderClear_ID);
 
-    assert.equal(data.bountyVaultA, bountyVaultA_ID);
-    assert.equal(data.bountyVaultB, bountyVaultB_ID);
+    assert.equal(data.bountyVaultA.id, bountyVaultA_ID);
+    assert.equal(data.bountyVaultB.id, bountyVaultB_ID);
 
-    assert.equal(data.bountyTokenA, tokenB.address.toLowerCase());
-    assert.equal(data.bountyTokenB, tokenA.address.toLowerCase());
+    assert.equal(data.bountyTokenA.id, tokenB.address.toLowerCase());
+    assert.equal(data.bountyTokenB.id, tokenA.address.toLowerCase());
   });
 });

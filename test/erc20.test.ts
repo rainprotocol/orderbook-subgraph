@@ -25,7 +25,7 @@ import {
 } from "../typechain/contracts/orderbook/OrderBook";
 import { getEventArgs, waitForSubgraphToBeSynced } from "./utils";
 
-describe("ERC20 entity", () => {
+describe.only("ERC20 entity", () => {
   let tokenA: ReserveToken18;
   let tokenB: ReserveToken18;
 

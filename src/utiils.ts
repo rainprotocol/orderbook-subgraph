@@ -169,11 +169,10 @@ export function createOrder(order: ClearAliceStruct): Order {
   let tuple = changetype<ethereum.Tuple>(tupleArray);
   let encodedOrder = ethereum.encode(ethereum.Value.fromTuple(tuple))!;
   let keccak256 = crypto.keccak256(encodedOrder);
-  let uint256 = hexToBI(keccak256.toHex());
-
-  let order_ = Order.load(uint256.toString());
+  let uint256 = BigInt.fromByteArray(keccak256);
+  let order_ = Order.load(uint256.toHex());
   if (order_) return order_;
-  else return new Order(uint256.toString());
+  else return new Order(uint256.toHex());
 }
 
 function hexToBI(hexString: string): BigInt {
@@ -208,19 +207,19 @@ export function hashTakeOrderConfig(config: TakeOrderConfigStruct): string {
   return keccak256.toHex();
 }
 
-export function createOrderClear(txHash: Bytes): OrderClear {
+export function createOrderClear(txHash: string): OrderClear {
   for (let i = 0; ; i++) {
     let tupleArray: Array<ethereum.Value> = [
-      ethereum.Value.fromBytes(txHash),
+      ethereum.Value.fromString(txHash),
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(i)),
     ];
 
     let tuple = changetype<ethereum.Tuple>(tupleArray);
     let encodedOrder = ethereum.encode(ethereum.Value.fromTuple(tuple))!;
     let keccak256 = crypto.keccak256(encodedOrder as ByteArray);
-    let orderClear = OrderClear.load(keccak256.toHex());
+    let orderClear = OrderClear.load(`${txHash}-${i}`);
     if (!orderClear) {
-      return new OrderClear(keccak256.toHex());
+      return new OrderClear(`${txHash}-${i}`);
     }
   }
   return new OrderClear("");
