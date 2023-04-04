@@ -97,41 +97,41 @@ describe("ERC20 entity", () => {
     assert(sender_A === alice.address, "wrong sender");
     compareStructs(order_A, orderConfig_A);
 
-    // // Subgraph check
-    // await waitForSubgraphToBeSynced();
+    // Subgraph check
+    await waitForSubgraphToBeSynced();
 
-    // const query = `{
-    //   tokenA: erc20 (id: "${tokenA.address.toLowerCase()}") {
-    //     name
-    //     symbol
-    //     totalSupply
-    //     decimals
-    //   }
-    //   tokenB: erc20 (id: "${tokenB.address.toLowerCase()}") {
-    //     name
-    //     symbol
-    //     totalSupply
-    //     decimals
-    //   }
-    // }`;
+    const query = `{
+      tokenA: erc20 (id: "${tokenA.address.toLowerCase()}") {
+        name
+        symbol
+        totalSupply
+        decimals
+      }
+      tokenB: erc20 (id: "${tokenB.address.toLowerCase()}") {
+        name
+        symbol
+        totalSupply
+        decimals
+      }
+    }`;
 
-    // const response = (await subgraph({ query })) as FetchResult;
-    // const dataA = response.data.tokenA;
-    // const dataB = response.data.tokenB;
+    const response = (await subgraph({ query })) as FetchResult;
+    const dataA = response.data.tokenA;
+    const dataB = response.data.tokenB;
 
-    // // TokenA
-    // assert.equal(dataA.name, await tokenA.name());
-    // assert.equal(dataA.symbol, await tokenA.symbol());
-    // assert.equal(dataA.symbol, await tokenA.symbol());
-    // assert.equal(dataA.totalSupply, await tokenA.totalSupply());
-    // assert.equal(dataA.decimals, await tokenA.decimals());
+    // TokenA
+    assert.equal(dataA.name, await tokenA.name());
+    assert.equal(dataA.symbol, await tokenA.symbol());
+    assert.equal(dataA.symbol, await tokenA.symbol());
+    assert.equal(dataA.totalSupply, await tokenA.totalSupply());
+    assert.equal(dataA.decimals, await tokenA.decimals());
 
-    // // TokenB
-    // assert.equal(dataB.name, await tokenB.name());
-    // assert.equal(dataB.symbol, await tokenB.symbol());
-    // assert.equal(dataB.symbol, await tokenB.symbol());
-    // assert.equal(dataB.totalSupply, await tokenB.totalSupply());
-    // assert.equal(dataB.decimals, await tokenB.decimals());
+    // TokenB
+    assert.equal(dataB.name, await tokenB.name());
+    assert.equal(dataB.symbol, await tokenB.symbol());
+    assert.equal(dataB.symbol, await tokenB.symbol());
+    assert.equal(dataB.totalSupply, await tokenB.totalSupply());
+    assert.equal(dataB.decimals, await tokenB.decimals());
   });
 
   it("should update the Vault after deposits", async function () {
@@ -169,28 +169,28 @@ describe("ERC20 entity", () => {
     assert(depositSender === alice.address);
     compareStructs(depositConfig, depositConfigStruct);
 
-    // // Subgraph check
-    // await waitForSubgraphToBeSynced();
+    // Subgraph check
+    await waitForSubgraphToBeSynced();
 
-    // const query = `{
-    //   erc20 (id: "${tokenA.address.toLowerCase()}") {
-    //     name
-    //     symbol
-    //     totalSupply
-    //     decimals
-    //   }
-    // }`;
+    const query = `{
+      erc20 (id: "${tokenA.address.toLowerCase()}") {
+        name
+        symbol
+        totalSupply
+        decimals
+      }
+    }`;
 
-    // const response = (await subgraph({ query })) as FetchResult;
+    const response = (await subgraph({ query })) as FetchResult;
 
-    // const data = response.data.erc20;
+    const data = response.data.erc20;
 
-    // // Token ERC20
-    // assert.equal(data.name, await tokenA.name());
-    // assert.equal(data.symbol, await tokenA.symbol());
-    // assert.equal(data.symbol, await tokenA.symbol());
-    // assert.equal(data.totalSupply, await tokenA.totalSupply());
-    // assert.equal(data.decimals, await tokenA.decimals());
+    // Token ERC20
+    assert.equal(data.name, await tokenA.name());
+    assert.equal(data.symbol, await tokenA.symbol());
+    assert.equal(data.symbol, await tokenA.symbol());
+    assert.equal(data.totalSupply, await tokenA.totalSupply());
+    assert.equal(data.decimals, await tokenA.decimals());
   });
 
   it("should not break the sg when using a non-ERC20 contract as address when adding an order", async () => {
