@@ -1195,4 +1195,210 @@ describe("TokenVault entity", () => {
       id: "<OrderClear_ID>",
     });
   });
+
+  it("should create/update the TokenVault of the Clearer address", async function () {
+    const [, alice, bob, bountyBot] = signers;
+
+    const aliceInputVault = ethers.BigNumber.from(randomUint256());
+    const aliceOutputVault = ethers.BigNumber.from(randomUint256());
+    const bobInputVault = ethers.BigNumber.from(randomUint256());
+    const bobOutputVault = ethers.BigNumber.from(randomUint256());
+    const bountyBotVaultA = ethers.BigNumber.from(randomUint256());
+    const bountyBotVaultB = ethers.BigNumber.from(randomUint256());
+
+    // Order_A
+    const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
+
+    const aliceOrder = encodeMeta("Order_A");
+
+    const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
+      ratio_A,
+      max_uint256,
+      tokenA.address,
+      18,
+      aliceInputVault,
+      tokenB.address,
+      18,
+      aliceOutputVault,
+      aliceOrder
+    );
+
+    const txAddOrderAlice = await orderBook
+      .connect(alice)
+      .addOrder(OrderConfig_A);
+
+    const { sender: sender_A, order: Order_A } = (await getEventArgs(
+      txAddOrderAlice,
+      "AddOrder",
+      orderBook
+    )) as AddOrderEvent["args"];
+
+    assert(sender_A === alice.address, "wrong sender");
+    compareStructs(Order_A, OrderConfig_A);
+
+    // Order_B
+    const ratio_B = fixedPointDiv(ONE, ratio_A);
+
+    const bobOrder = encodeMeta("Order_B");
+
+    const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
+      ratio_B,
+      max_uint256,
+      tokenB.address,
+      18,
+      bobInputVault,
+      tokenA.address,
+      18,
+      bobOutputVault,
+      bobOrder
+    );
+
+    const txAddOrderBob = await orderBook.connect(bob).addOrder(OrderConfig_B);
+
+    const { sender: sender_B, order: Order_B } = (await getEventArgs(
+      txAddOrderBob,
+      "AddOrder",
+      orderBook
+    )) as AddOrderEvent["args"];
+
+    assert(sender_B === bob.address, "wrong sender");
+    compareStructs(Order_B, OrderConfig_B);
+
+    // DEPOSITS
+    const amountB = ethers.BigNumber.from("1000" + eighteenZeros);
+    const amountA = ethers.BigNumber.from("1000" + eighteenZeros);
+
+    await tokenB.transfer(alice.address, amountB);
+    await tokenA.transfer(bob.address, amountA);
+
+    const depositConfigStructAlice: DepositConfigStruct = {
+      token: tokenB.address,
+      vaultId: aliceOutputVault,
+      amount: amountB,
+    };
+    const depositConfigStructBob: DepositConfigStruct = {
+      token: tokenA.address,
+      vaultId: bobOutputVault,
+      amount: amountA,
+    };
+
+    await tokenB
+      .connect(alice)
+      .approve(orderBook.address, depositConfigStructAlice.amount);
+    await tokenA
+      .connect(bob)
+      .approve(orderBook.address, depositConfigStructBob.amount);
+
+    // Alice deposits tokenB into her output vault
+    const txDepositOrderAlice = await orderBook
+      .connect(alice)
+      .deposit(depositConfigStructAlice);
+    // Bob deposits tokenA into his output vault
+    const txDepositOrderBob = await orderBook
+      .connect(bob)
+      .deposit(depositConfigStructBob);
+
+    const { sender: depositAliceSender, config: depositAliceConfig } =
+      (await getEventArgs(
+        txDepositOrderAlice,
+        "Deposit",
+        orderBook
+      )) as DepositEvent["args"];
+    const { sender: depositBobSender, config: depositBobConfig } =
+      (await getEventArgs(
+        txDepositOrderBob,
+        "Deposit",
+        orderBook
+      )) as DepositEvent["args"];
+
+    assert(depositAliceSender === alice.address);
+    compareStructs(depositAliceConfig, depositConfigStructAlice);
+    assert(depositBobSender === bob.address);
+    compareStructs(depositBobConfig, depositConfigStructBob);
+
+    // BOUNTY BOT CLEARS THE ORDER
+
+    const clearConfig: ClearConfigStruct = {
+      aliceInputIOIndex: 0,
+      aliceOutputIOIndex: 0,
+      bobInputIOIndex: 0,
+      bobOutputIOIndex: 0,
+      aliceBountyVaultId: bountyBotVaultA,
+      bobBountyVaultId: bountyBotVaultB,
+    };
+
+    const txClearOrder = await orderBook
+      .connect(bountyBot)
+      .clear(Order_A, Order_B, clearConfig, [], []);
+
+    const {
+      sender: clearSender,
+      alice: clearA_,
+      bob: clearB_,
+      clearConfig: clearBountyConfig,
+    } = (await getEventArgs(
+      txClearOrder,
+      "Clear",
+      orderBook
+    )) as ClearEvent["args"];
+    const { sender: afterClearSender, clearStateChange: clearStateChange } =
+      (await getEventArgs(
+        txClearOrder,
+        "AfterClear",
+        orderBook
+      )) as AfterClearEvent["args"];
+
+    const aOutputMaxExpected = amountA;
+    const bOutputMaxExpected = amountB;
+
+    const aOutputExpected = minBN(
+      aOutputMaxExpected,
+      fixedPointMul(ratio_B, amountA)
+    );
+    const bOutputExpected = minBN(
+      bOutputMaxExpected,
+      fixedPointMul(ratio_A, amountB)
+    );
+
+    const expectedClearStateChange: ClearStateChangeStruct = {
+      aliceOutput: aOutputExpected,
+      bobOutput: bOutputExpected,
+      aliceInput: fixedPointMul(ratio_A, aOutputExpected),
+      bobInput: fixedPointMul(ratio_B, bOutputExpected),
+    };
+
+    assert(afterClearSender === bountyBot.address);
+    assert(clearSender === bountyBot.address);
+    compareSolStructs(clearA_, Order_A);
+    compareSolStructs(clearB_, Order_B);
+    compareStructs(clearBountyConfig, clearConfig);
+    compareStructs(clearStateChange, expectedClearStateChange);
+
+    // Subgraph check
+    await waitForSubgraphToBeSynced();
+
+    // Vault ID where the bounty will be move
+    const { aliceBountyVaultId, bobBountyVaultId } = clearBountyConfig;
+
+    // TokenVault: #{vaultId}-{owner}-{token}
+    const tokenVault_A_ID = `${aliceBountyVaultId.toString()}-${bountyBot.address.toLowerCase()}-${tokenB.address.toLowerCase()}`;
+    const tokenVault_B_ID = `${bobBountyVaultId.toString()}-${bountyBot.address.toLowerCase()}-${tokenA.address.toLowerCase()}`;
+
+    const query = `{
+      tokenVaults {
+        id
+      }
+    }`;
+
+    const response = (await subgraph({ query })) as FetchResult;
+
+    const data = response.data.vaults;
+
+    expect(data).to.deep.include({
+      id: tokenVault_A_ID,
+    });
+    expect(data).to.deep.include({
+      id: tokenVault_B_ID,
+    });
+  });
 });
