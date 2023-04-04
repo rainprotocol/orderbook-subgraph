@@ -32,6 +32,8 @@ import {
   DepositConfigStruct,
   DepositEvent,
   OrderConfigStruct,
+  TakeOrderConfigStruct,
+  TakeOrdersConfigStruct,
   WithdrawConfigStruct,
   WithdrawEvent,
 } from "../typechain/contracts/orderbook/OrderBook";
@@ -482,5 +484,133 @@ describe("Account entity", () => {
     expect(dataOrdersCleared).to.be.not.empty;
   });
 
-  it("should query correctly the Account after TakeOrders");
+  it("should query correctly the Account after take an order", async function () {
+    const [, alice, bob] = signers;
+
+    const aliceInputVault = ethers.BigNumber.from(randomUint256());
+    const aliceOutputVault = ethers.BigNumber.from(randomUint256());
+
+    const aliceOrder = encodeMeta("Order_A");
+
+    // ASK ORDER
+
+    const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
+
+    const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
+      ratio_A,
+      max_uint256,
+      tokenA.address,
+      18,
+      aliceInputVault,
+      tokenB.address,
+      18,
+      aliceOutputVault,
+      aliceOrder
+    );
+
+    const txAddOrder = await orderBook.connect(alice).addOrder(OrderConfig_A);
+
+    const { order: Order_A } = (await getEventArgs(
+      txAddOrder,
+      "AddOrder",
+      orderBook
+    )) as AddOrderEvent["args"];
+
+    // DEPOSIT
+
+    const amountB = ethers.BigNumber.from("2" + eighteenZeros);
+
+    const depositConfigStructAlice: DepositConfigStruct = {
+      token: tokenB.address,
+      vaultId: aliceOutputVault,
+      amount: amountB,
+    };
+
+    await tokenB.transfer(alice.address, amountB);
+    await tokenB
+      .connect(alice)
+      .approve(orderBook.address, depositConfigStructAlice.amount);
+
+    // Alice deposits tokenB into her output vault
+    const txDepositOrderAlice = await orderBook
+      .connect(alice)
+      .deposit(depositConfigStructAlice);
+
+    const { sender: depositAliceSender, config: depositAliceConfig } =
+      (await getEventArgs(
+        txDepositOrderAlice,
+        "Deposit",
+        orderBook
+      )) as DepositEvent["args"];
+
+    assert(depositAliceSender === alice.address);
+    compareStructs(depositAliceConfig, depositConfigStructAlice);
+
+    // TAKE ORDER
+
+    // Bob takes order with direct wallet transfer
+    const takeOrderConfigStruct: TakeOrderConfigStruct = {
+      order: Order_A,
+      inputIOIndex: 0,
+      outputIOIndex: 0,
+      signedContext: [],
+    };
+
+    const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
+      output: tokenA.address,
+      input: tokenB.address,
+      minimumInput: amountB,
+      maximumInput: amountB,
+      maximumIORatio: ratio_A,
+      orders: [takeOrderConfigStruct],
+    };
+
+    const amountA = amountB.mul(ratio_A).div(ONE);
+    await tokenA.transfer(bob.address, amountA);
+    await tokenA.connect(bob).approve(orderBook.address, amountA);
+
+    const txTakeOrders = await orderBook
+      .connect(bob)
+      .takeOrders(takeOrdersConfigStruct);
+
+    const tokenAAliceBalance = await tokenA.balanceOf(alice.address);
+    const tokenBAliceBalance = await tokenB.balanceOf(alice.address);
+    const tokenABobBalance = await tokenA.balanceOf(bob.address);
+    const tokenBBobBalance = await tokenB.balanceOf(bob.address);
+
+    assert(tokenAAliceBalance.isZero()); // Alice has not yet withdrawn
+    assert(tokenBAliceBalance.isZero());
+    assert(tokenABobBalance.isZero());
+    assert(tokenBBobBalance.eq(amountB));
+
+    await orderBook.connect(alice).withdraw({
+      token: tokenA.address,
+      vaultId: aliceInputVault,
+      amount: amountA,
+    });
+
+    const tokenAAliceBalanceWithdrawn = await tokenA.balanceOf(alice.address);
+    assert(tokenAAliceBalanceWithdrawn.eq(amountA));
+
+    const takeOrderEntity_ID = `${txTakeOrders.hash.toLowerCase()}-${0}`;
+
+    // Subgraph check
+    await waitForSubgraphToBeSynced();
+
+    const query = `{
+      account (id: "${bob.address.toLowerCase()}") {
+        takeOrderEntities {
+          id
+        }
+      }
+    }`;
+
+    const response = (await subgraph({ query })) as FetchResult;
+
+    const dataTakeOrder = response.data.takeOrderEntities;
+
+    expect(dataTakeOrder).to.deep.include({
+      id: takeOrderEntity_ID,
+    });
+  });
 });
