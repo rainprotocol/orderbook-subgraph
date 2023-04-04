@@ -274,3 +274,8 @@ type OrderClearStateChange @entity {
   aInput: BigInt! # AfterClear.clearStateChange.aliceInput
   bInput: BigInt! # AfterClear.clearStateChange.bobInput
 }
+
+type ClearOrderConfig @entity {
+  id: ID!
+  orderClearId: OrderClear!
+}

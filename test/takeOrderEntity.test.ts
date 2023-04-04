@@ -182,8 +182,7 @@ describe("TakeOrderEntity", () => {
       }`;
 
       const response = (await subgraph({ query })) as FetchResult;
-
-      const data = response.data;
+      const data = response.data.takeOrderEntity;
 
       assert.equal(data.input, input.toString());
       assert.equal(data.output, output.toString());

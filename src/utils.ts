@@ -15,6 +15,7 @@ import {
   MetaContentV1,
   Order,
   OrderClear,
+  TakeOrderEntity,
   TokenVault,
   Vault,
 } from "../generated/schema";
@@ -84,7 +85,7 @@ export function createToken(address: Bytes): ERC20 {
     let decimals = reserveToken.try_decimals();
     let name = reserveToken.try_name();
     let symbol = reserveToken.try_symbol();
-    token.decimals = !decimals.reverted ? decimals.value : 18;
+    token.decimals = !decimals.reverted ? decimals.value : 0;
     token.name = !name.reverted ? name.value : "NONE";
     token.symbol = !symbol.reverted ? symbol.value : "NONE";
     token.totalSupply = BigInt.zero();
@@ -169,10 +170,9 @@ export function createOrder(order: ClearAliceStruct): Order {
   let tuple = changetype<ethereum.Tuple>(tupleArray);
   let encodedOrder = ethereum.encode(ethereum.Value.fromTuple(tuple))!;
   let keccak256 = crypto.keccak256(encodedOrder);
-  let uint256 = BigInt.fromByteArray(keccak256);
-  let order_ = Order.load(uint256.toHex());
+  let order_ = Order.load(keccak256.toHex());
   if (order_) return order_;
-  else return new Order(uint256.toHex());
+  else return new Order(keccak256.toHex());
 }
 
 function hexToBI(hexString: string): BigInt {
@@ -181,30 +181,38 @@ function hexToBI(hexString: string): BigInt {
   );
 }
 
-export function hashTakeOrderConfig(config: TakeOrderConfigStruct): string {
-  let order = createOrder(changetype<ClearAliceStruct>(config.order));
+export function createTakeOrderConfig(txHash: string): TakeOrderEntity {
+  // let order = createOrder(changetype<ClearAliceStruct>(config.order));
 
-  let signedContextArray: Array<ethereum.Tuple> = [];
-  for (let i = 0; i < config.signedContext.length; i++) {
-    let signedContext: Array<ethereum.Value> = [
-      ethereum.Value.fromAddress(config.signedContext[i].signer),
-      ethereum.Value.fromBytes(config.signedContext[i].signature),
-      ethereum.Value.fromUnsignedBigIntArray(config.signedContext[i].context),
-    ];
-    signedContextArray.push(changetype<ethereum.Tuple>(signedContext));
+  // let signedContextArray: Array<ethereum.Tuple> = [];
+  // for (let i = 0; i < config.signedContext.length; i++) {
+  //   let signedContext: Array<ethereum.Value> = [
+  //     ethereum.Value.fromAddress(config.signedContext[i].signer),
+  //     ethereum.Value.fromBytes(config.signedContext[i].signature),
+  //     ethereum.Value.fromUnsignedBigIntArray(config.signedContext[i].context),
+  //   ];
+  //   signedContextArray.push(changetype<ethereum.Tuple>(signedContext));
+  // }
+
+  // let tupleArray: Array<ethereum.Value> = [
+  //   ethereum.Value.fromString(order.id),
+  //   ethereum.Value.fromUnsignedBigInt(config.inputIOIndex),
+  //   ethereum.Value.fromUnsignedBigInt(config.outputIOIndex),
+  //   ethereum.Value.fromTupleArray(signedContextArray),
+  // ];
+
+  // let tuple = changetype<ethereum.Tuple>(tupleArray);
+  // let encodedOrder = ethereum.encode(ethereum.Value.fromTuple(tuple))!;
+  // let keccak256 = crypto.keccak256(encodedOrder as ByteArray);
+  // return keccak256.toHex();
+
+  for (let i = 0; ; i++) {
+    let orderClear = TakeOrderEntity.load(`${txHash}-${i}`);
+    if (!orderClear) {
+      return new TakeOrderEntity(`${txHash}-${i}`);
+    }
   }
-
-  let tupleArray: Array<ethereum.Value> = [
-    ethereum.Value.fromString(order.id),
-    ethereum.Value.fromUnsignedBigInt(config.inputIOIndex),
-    ethereum.Value.fromUnsignedBigInt(config.outputIOIndex),
-    ethereum.Value.fromTupleArray(signedContextArray),
-  ];
-
-  let tuple = changetype<ethereum.Tuple>(tupleArray);
-  let encodedOrder = ethereum.encode(ethereum.Value.fromTuple(tuple))!;
-  let keccak256 = crypto.keccak256(encodedOrder as ByteArray);
-  return keccak256.toHex();
+  return new TakeOrderEntity("");
 }
 
 export function createOrderClear(txHash: string): OrderClear {

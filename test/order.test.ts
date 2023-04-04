@@ -403,8 +403,6 @@ describe("Order entity", () => {
       .connect(alice)
       .removeOrder(LiveOrder_A);
 
-    await waitForSubgraphToBeSynced();
-
     const {
       sender: deadSender_A,
       order: DeadOrder_A,
@@ -415,6 +413,7 @@ describe("Order entity", () => {
       orderBook
     )) as RemoveOrderEvent["args"];
 
+    await waitForSubgraphToBeSynced();
     assert(deadSender_A === alice.address, "wrong sender");
     compareStructs(DeadOrder_A, OrderConfig_A);
 

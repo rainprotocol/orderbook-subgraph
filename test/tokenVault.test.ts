@@ -1183,6 +1183,9 @@ describe("TokenVault entity", () => {
     }`;
 
     const response = (await subgraph({ query })) as FetchResult;
+    console.log(JSON.stringify(response, null, 2));
+    console.log(tokenVault_Input_ID);
+    console.log(tokenVault_Output_ID);
     const dataInput = response.data.tokenVaultInput;
     const dataOutput = response.data.tokenVaultOutput;
 
