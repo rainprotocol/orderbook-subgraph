@@ -5,6 +5,7 @@ import { Result } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import * as path from "path";
 import { ApolloFetch, createApolloFetch } from "apollo-fetch";
+import { OBMultiTx, OrderBook } from "../typechain";
 
 export const META_MAGIC_NUMBER_V1 = BigInt(0xff0a89c674ee7874n);
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -253,4 +254,13 @@ export const getTxTimeblock = async (
   if (block == undefined) return [0, 0];
   const timestamp = (await ethers.provider.getBlock(block)).timestamp;
   return [block, timestamp];
+};
+
+export const deployOBMultiTx = async (orderBook: OrderBook) => {
+  const contractFactory = await ethers.getContractFactory("OBMultiTx");
+  const contract = await contractFactory.deploy(orderBook.address);
+
+  await contract.deployed();
+
+  return contract as OBMultiTx;
 };
