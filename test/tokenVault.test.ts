@@ -1402,7 +1402,7 @@ describe("TokenVault entity", () => {
 
     const response = (await subgraph({ query })) as FetchResult;
 
-    const data = response.data.vaults;
+    const data = response.data.tokenVaults;
 
     expect(data).to.deep.include({
       id: tokenVault_A_ID,

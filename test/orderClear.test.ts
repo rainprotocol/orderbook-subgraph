@@ -285,8 +285,8 @@ describe("OrderClear entity", () => {
     expect(data.bounty.id).to.be.not.null;
     expect(data.stateChange.id).to.be.not.null;
 
-    assert.equal(data.orderA.id, ethers.BigNumber.from(orderHash_A)._hex);
-    assert.equal(data.orderB.id, ethers.BigNumber.from(orderHash_B)._hex);
+    assert.equal(data.orderA.id, orderHash_A.toHexString());
+    assert.equal(data.orderB.id, orderHash_B.toHexString());
 
     expect(data.owners).to.deep.include({
       id: clearA_.owner.toLowerCase(),

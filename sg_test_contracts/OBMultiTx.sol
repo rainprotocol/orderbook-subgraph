@@ -6,6 +6,15 @@ import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/t
 import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "hardhat/console.sol";
 
+/// Struct to use the MultiClear function
+struct MultiClear {
+    Order alice_;
+    Order bob_;
+    ClearConfig clearConfig_;
+    SignedContext[] aliceSignedContext_;
+    SignedContext[] bobSignedContext_;
+}
+
 /// @title OBMultiTx
 /// A test contract that intend to make multi calls to an specifc OB Interface
 /// to make specific test on the OB Subgraph.
@@ -40,6 +49,19 @@ contract OBMultiTx {
         for (uint256 i_ = 0; i_ < configs_.length; i_++) {
             WithdrawConfig calldata config_ = configs_[i_];
             OBContract.withdraw(config_);
+        }
+    }
+
+    function multiClear(MultiClear[] calldata configs_) external {
+        for (uint256 i_ = 0; i_ < configs_.length; i_++) {
+            MultiClear calldata config_ = configs_[i_];
+            OBContract.clear(
+                config_.alice_,
+                config_.bob_,
+                config_.clearConfig_,
+                config_.aliceSignedContext_,
+                config_.bobSignedContext_
+            );
         }
     }
 
