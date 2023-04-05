@@ -242,15 +242,15 @@ describe("OrderClearStateChange entity", () => {
     }`;
 
     const response = (await subgraph({ query })) as FetchResult;
-    const data = response.data.orderClear.bounty;
+    const data = response.data.orderClear;
 
     const { aliceOutput, bobOutput, aliceInput, bobInput } = clearStateChange;
 
-    assert.equal(data.orderClear.id, orderClear_ID);
+    assert.equal(data.stateChange.orderClear.id, orderClear_ID);
 
-    assert.equal(data.aOutput, aliceOutput);
-    assert.equal(data.bOutput, bobOutput);
-    assert.equal(data.aInput, aliceInput);
-    assert.equal(data.bInput, bobInput);
+    assert.equal(data.stateChange.aOutput, aliceOutput);
+    assert.equal(data.stateChange.bOutput, bobOutput);
+    assert.equal(data.stateChange.aInput, aliceInput);
+    assert.equal(data.stateChange.bInput, bobInput);
   });
 });

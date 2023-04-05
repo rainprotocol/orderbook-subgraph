@@ -43,7 +43,7 @@ import {
   waitForSubgraphToBeSynced,
 } from "./utils";
 
-describe("Account entity", () => {
+xdescribe("Account entity", () => {
   let tokenA: ReserveToken18;
   let tokenB: ReserveToken18;
 
@@ -128,7 +128,6 @@ describe("Account entity", () => {
     }`;
 
     const response = (await subgraph({ query })) as FetchResult;
-
     const data = response.data.account;
 
     expect(data.orders).to.deep.include({

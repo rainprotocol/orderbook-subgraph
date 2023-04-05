@@ -116,6 +116,7 @@ describe("ERC20 entity", () => {
     }`;
 
     const response = (await subgraph({ query })) as FetchResult;
+
     const dataA = response.data.tokenA;
     const dataB = response.data.tokenB;
 
@@ -277,17 +278,15 @@ describe("ERC20 entity", () => {
     const dataB = response.data.nonErc20_B;
 
     // nonErc20_A
-    assert.equal(dataA.name, null);
-    assert.equal(dataA.symbol, null);
-    assert.equal(dataA.symbol, null);
-    assert.equal(dataA.totalSupply, null);
-    assert.equal(dataA.decimals, null);
+    assert.equal(dataA.name, "NONE");
+    assert.equal(dataA.symbol, "NONE");
+    assert.equal(dataA.totalSupply, 0);
+    assert.equal(dataA.decimals, 0);
 
     // nonErc20_B
-    assert.equal(dataB.name, null);
-    assert.equal(dataB.symbol, null);
-    assert.equal(dataB.symbol, null);
-    assert.equal(dataB.totalSupply, null);
-    assert.equal(dataB.decimals, null);
+    assert.equal(dataB.name, "NONE");
+    assert.equal(dataB.symbol, "NONE");
+    assert.equal(dataB.totalSupply, 0);
+    assert.equal(dataB.decimals, 0);
   });
 });
