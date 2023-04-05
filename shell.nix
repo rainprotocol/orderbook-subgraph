@@ -99,8 +99,10 @@ let
     copy-abis
   '';
 
-  ci-prepare-subgraph = pkgs.writeShellScriptBin "ci-prepare-subgraph" ''
+  ci-prepare-subgraph-polygon = pkgs.writeShellScriptBin "ci-prepare-subgraph-polygon" ''
     npx mustache config/polygon.json subgraph.template.yaml subgraph.yaml
+    graph codegen
+    graph build
   '';
   
 in
@@ -119,6 +121,7 @@ pkgs.stdenv.mkDerivation {
   flush-all
   init
   install-submodules
+  ci-prepare-subgraph-polygon
  ];
 
  shellHook = ''

@@ -56,7 +56,7 @@ jobs:
           nix-shell --run init
 
       - name: Prepare subgraph manifest
-        run: nix-shell --run ci-prepare-subgraph
+        run: nix-shell --run ci-prepare-subgraph-polygon
 
       - name: Graph Authentication
         run: npx graph auth --product hosted-service $THE_GRAPH_API_TOKEN
