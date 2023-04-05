@@ -111,7 +111,7 @@ describe("TokenVault entity", () => {
     compareStructs(order_A, orderConfig_A);
 
     // Subgraph check
-    await waitForSubgraphToBeSynced(500);
+    await waitForSubgraphToBeSynced(1000);
 
     // TokenVault: #{vaultId}-{owner}-{token}
     const tokenVault_Input_ID = `${aliceInputVault.toString()}-${alice.address.toLowerCase()}-${tokenA.address.toLowerCase()}`;

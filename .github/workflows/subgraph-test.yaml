@@ -1,4 +1,4 @@
-name: MetaBoard Subgraph CI
+name: Orderbook Subgraph CI
 on: [push]
 
 jobs:
@@ -52,7 +52,7 @@ jobs:
       - name: install npm dependencies
         run: |
           nix-shell --run init
-          
+
       - name: Prepare subgraph manifest
         run: nix-shell --run ci-prepare-subgraph
 
