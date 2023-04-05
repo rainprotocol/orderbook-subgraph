@@ -98,6 +98,10 @@ let
     compile
     copy-abis
   '';
+
+  ci-prepare-subgraph = pkgs.writeShellScriptBin "ci-prepare-subgraph" ''
+    npx mustache config/polygon.json subgraph.template.yaml subgraph.yaml
+  '';
   
 in
 pkgs.stdenv.mkDerivation {
