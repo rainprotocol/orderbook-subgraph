@@ -32,6 +32,17 @@ import {
 
 export const RAIN_META_DOCUMENT_HEX = "0xff0a89c674ee7874";
 
+/**
+ * From a given hexadecimal string, check if it's have an even length
+ */
+export function getEvenHex(value_: string): string {
+  if (value_.length % 2) {
+    value_ = value_.slice(0, 2) + "0" + value_.slice(2);
+  }
+
+  return value_;
+}
+
 export function stringToArrayBuffer(val: string): ArrayBuffer {
   const buff = new ArrayBuffer(val.length / 2);
   const view = new DataView(buff);
@@ -178,9 +189,11 @@ export function createOrder(order: ClearAliceStruct): Order {
   let tuple = changetype<ethereum.Tuple>(tupleArray);
   let encodedOrder = ethereum.encode(ethereum.Value.fromTuple(tuple))!;
   let keccak256 = crypto.keccak256(encodedOrder);
-  let order_ = Order.load(keccak256.toHex());
+  let orderHashHex = getEvenHex(keccak256.toHex());
+
+  let order_ = Order.load(orderHashHex);
   if (order_) return order_;
-  else return new Order(keccak256.toHex());
+  else return new Order(orderHashHex);
 }
 
 function hexToBI(hexString: string): BigInt {
@@ -190,30 +203,6 @@ function hexToBI(hexString: string): BigInt {
 }
 
 export function createTakeOrderConfig(txHash: string): TakeOrderEntity {
-  // let order = createOrder(changetype<ClearAliceStruct>(config.order));
-
-  // let signedContextArray: Array<ethereum.Tuple> = [];
-  // for (let i = 0; i < config.signedContext.length; i++) {
-  //   let signedContext: Array<ethereum.Value> = [
-  //     ethereum.Value.fromAddress(config.signedContext[i].signer),
-  //     ethereum.Value.fromBytes(config.signedContext[i].signature),
-  //     ethereum.Value.fromUnsignedBigIntArray(config.signedContext[i].context),
-  //   ];
-  //   signedContextArray.push(changetype<ethereum.Tuple>(signedContext));
-  // }
-
-  // let tupleArray: Array<ethereum.Value> = [
-  //   ethereum.Value.fromString(order.id),
-  //   ethereum.Value.fromUnsignedBigInt(config.inputIOIndex),
-  //   ethereum.Value.fromUnsignedBigInt(config.outputIOIndex),
-  //   ethereum.Value.fromTupleArray(signedContextArray),
-  // ];
-
-  // let tuple = changetype<ethereum.Tuple>(tupleArray);
-  // let encodedOrder = ethereum.encode(ethereum.Value.fromTuple(tuple))!;
-  // let keccak256 = crypto.keccak256(encodedOrder as ByteArray);
-  // return keccak256.toHex();
-
   for (let i = 0; ; i++) {
     let orderClear = TakeOrderEntity.load(`${txHash}-${i}`);
     if (!orderClear) {

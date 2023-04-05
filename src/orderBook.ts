@@ -45,6 +45,7 @@ import {
   createVault,
   createVaultDeposit,
   createVaultWithdraw,
+  getEvenHex,
   getKeccak256FromBytes,
   getOB,
   getRainMetaV1,
@@ -54,7 +55,9 @@ import {
 import { CBORDecoder } from "@rainprotocol/assemblyscript-cbor";
 
 export function handleAddOrder(event: AddOrder): void {
-  let order = new Order(event.params.orderHash.toHex());
+  const orderHashHex = getEvenHex(event.params.orderHash.toHex());
+
+  let order = new Order(orderHashHex);
   order.transactionHash = event.transaction.hash;
   order.owner = createAccount(event.params.order.owner).id;
   order.expressionDeployer = event.params.expressionDeployer;
@@ -71,14 +74,14 @@ export function handleAddOrder(event: AddOrder): void {
       event.params.order.owner
     );
     let input = new IO(
-      `${event.params.orderHash.toHex()}-${token.id.toHex()}-${
+      `${orderHashHex}-${token.id.toHex()}-${
         event.params.order.validInputs[i].vaultId
       }`
     );
     input.token = token.id;
     input.decimals = event.params.order.validInputs[i].decimals;
     input.vault = vault.id;
-    input.order = event.params.orderHash.toHex();
+    input.order = orderHashHex;
     input.save();
 
     let tokenVault = createTokenVault(
@@ -102,14 +105,14 @@ export function handleAddOrder(event: AddOrder): void {
       event.params.order.owner
     );
     let output = new IO(
-      `${event.params.orderHash.toHex()}-${token.id.toHex()}-${
+      `${orderHashHex}-${token.id.toHex()}-${
         event.params.order.validOutputs[i].vaultId
       }`
     );
     output.token = token.id;
     output.decimals = event.params.order.validOutputs[i].decimals;
     output.vault = vault.id;
-    output.order = event.params.orderHash.toHex();
+    output.order = orderHashHex;
     output.save();
 
     let tokenVault = createTokenVault(
@@ -380,7 +383,9 @@ export function handleOrderNotFound(event: OrderNotFound): void {}
 export function handleOrderZeroAmount(event: OrderZeroAmount): void {}
 
 export function handleRemoveOrder(event: RemoveOrder): void {
-  let order = Order.load(event.params.orderHash.toHex());
+  const orderHashHex = getEvenHex(event.params.orderHash.toHex());
+
+  let order = Order.load(orderHashHex);
   if (order) {
     order.orderActive = false;
     order.save();
@@ -449,11 +454,7 @@ export function handleInitialized(event: Initialized): void {
 
 export function handleMetaV1(event: MetaV1): void {
   const metaV1 = getRainMetaV1(event.params.meta);
-  let subjectHex = event.params.subject.toHex();
-
-  if (subjectHex.length % 2) {
-    subjectHex = subjectHex.slice(0, 2) + "0" + subjectHex.slice(2);
-  }
+  const subjectHex = getEvenHex(event.params.subject.toHex());
 
   // If the subject is equal to the OB address, then the meta data is the OB meta
   if (subjectHex == event.address.toHex()) {
@@ -462,7 +463,7 @@ export function handleMetaV1(event: MetaV1): void {
     orderBook.save();
   } else {
     // If not, the subject is an OrderHash then it's an Order meta
-    const orderHash = event.params.subject.toHex();
+    const orderHash = getEvenHex(event.params.subject.toHex());
     const order = Order.load(orderHash);
     if (order) {
       order.meta = metaV1.id;

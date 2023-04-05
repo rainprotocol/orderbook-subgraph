@@ -94,7 +94,7 @@ describe("IO entity", () => {
     assert(sender_A === alice.address, "wrong sender");
     compareStructs(order_A, orderConfig_A);
 
-    await waitForSubgraphToBeSynced(1000);
+    await waitForSubgraphToBeSynced();
 
     // Subgraph check
     const orderOwner = order_A.owner.toLowerCase();
@@ -198,7 +198,7 @@ describe("IO entity", () => {
     assert(sender_A === alice.address, "wrong sender");
     compareStructs(order_A, orderConfig_A);
 
-    await waitForSubgraphToBeSynced(1000);
+    await waitForSubgraphToBeSynced();
 
     // Subgraph check
     const orderOwner = order_A.owner.toLowerCase();

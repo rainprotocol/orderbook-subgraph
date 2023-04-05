@@ -235,7 +235,7 @@ describe("OrderClear entity", () => {
     compareStructs(clearStateChange, expectedClearStateChange);
 
     // Subgraph check
-    await waitForSubgraphToBeSynced(1000);
+    await waitForSubgraphToBeSynced();
 
     const orderClear_ID = `${txClearOrder.hash.toLowerCase()}-0`;
 
@@ -462,7 +462,7 @@ describe("OrderClear entity", () => {
     assert(clearEvents.length === afterClearEvents.length);
 
     // Subgraph check
-    await waitForSubgraphToBeSynced(1000);
+    await waitForSubgraphToBeSynced();
 
     for (let i = 0; i < clearEvents.length; i++) {
       const orderClear_ID = `${txMultiClear.hash.toLowerCase()}-${i}`;
