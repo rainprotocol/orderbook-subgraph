@@ -1,12 +1,14 @@
 import { execSync } from "child_process";
 import fs from "fs";
 import { Contract, ContractTransaction } from "ethers";
-import { Result, hexlify } from "ethers/lib/utils";
+import { Result } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import * as path from "path";
 import { ApolloFetch, createApolloFetch } from "apollo-fetch";
+import { OBMultiTx, OrderBook } from "../typechain";
 
-export const META_MAGIC_NUMBER_V1 = 0xff0a89c674ee7874;
+export const META_MAGIC_NUMBER_V1 = BigInt(0xff0a89c674ee7874n);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const writeFile = (_path: string, file: any): void => {
   try {
     fs.writeFileSync(_path, file);
@@ -87,6 +89,7 @@ export const exec = (cmd: string): string | Buffer => {
   try {
     return execSync(cmd, { cwd: srcDir, stdio: "inherit" });
   } catch (e) {
+    console.log(e);
     throw new Error(`Failed to run command \`${cmd}\``);
   }
 };
@@ -224,15 +227,40 @@ function sleep(milliseconds: number) {
 }
 
 export const waitForGraphNode = async (): Promise<void> => {
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     try {
+      //@ts-expect-error fetch is already available on node
       const response = await fetch("http://localhost:8030");
       if (response.status === 200) {
         break;
       }
     } catch (error) {
       console.log("graph node not ready");
-      await sleep(1000 * 2);
+      await sleep(100);
     }
   }
+};
+
+/**
+ * Get the block and timestamp of a specific transaction
+ * @param tx Transaction that will be use to get the block and timestamp
+ * @returns The block and timestamp of the transaction
+ */
+export const getTxTimeblock = async (
+  tx: ContractTransaction
+): Promise<[number, number]> => {
+  const block = tx.blockNumber;
+  if (block == undefined) return [0, 0];
+  const timestamp = (await ethers.provider.getBlock(block)).timestamp;
+  return [block, timestamp];
+};
+
+export const deployOBMultiTx = async (orderBook: OrderBook) => {
+  const contractFactory = await ethers.getContractFactory("OBMultiTx");
+  const contract = await contractFactory.deploy(orderBook.address);
+
+  await contract.deployed();
+
+  return contract as OBMultiTx;
 };

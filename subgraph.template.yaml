@@ -23,30 +23,30 @@ dataSources:
       eventHandlers:
         - event: Initialized(uint8)
           handler: handleInitialized
-        # - event: AddOrder(address,address,(address,bool,(address,address,address),(address,uint8,uint256)[],(address,uint8,uint256)[]),uint256)
-        #   handler: handleAddOrder
-        # - event: AfterClear(address,(uint256,uint256,uint256,uint256))
-        #   handler: handleAfterClear
-        # - event: Clear(address,(address,bool,(address,address,address),(address,uint8,uint256)[],(address,uint8,uint256)[]),(address,bool,(address,address,address),(address,uint8,uint256)[],(address,uint8,uint256)[]),(uint256,uint256,uint256,uint256,uint256,uint256))
-        #   handler: handleClear
-        # - event: Context(address,uint256[][])
-        #   handler: handleContext
-        # - event: Deposit(address,(address,uint256,uint256))
-        #   handler: handleDeposit
-        # - event: MetaV1(address,uint256,bytes)
-        #   handler: handleMetaV1
-        # - event: OrderExceedsMaxRatio(address,address,uint256)
-        #   handler: handleOrderExceedsMaxRatio
-        # - event: OrderNotFound(address,address,uint256)
-        #   handler: handleOrderNotFound
-        # - event: OrderZeroAmount(address,address,uint256)
-        #   handler: handleOrderZeroAmount
-        # - event: RemoveOrder(address,(address,bool,(address,address,address),(address,uint8,uint256)[],(address,uint8,uint256)[]),uint256)
-        #   handler: handleRemoveOrder
-        # - event: TakeOrder(address,((address,bool,(address,address,address),(address,uint8,uint256)[],(address,uint8,uint256)[]),uint256,uint256,(address,bytes,uint256[])[]),uint256,uint256)
-        #   handler: handleTakeOrder
-        # - event: Withdraw(address,(address,uint256,uint256),uint256)
-        #   handler: handleWithdraw
+        - event: AddOrder(address,address,(address,bool,(address,address,address),(address,uint8,uint256)[],(address,uint8,uint256)[]),uint256)
+          handler: handleAddOrder
+        - event: AfterClear(address,(uint256,uint256,uint256,uint256))
+          handler: handleAfterClear
+        - event: Clear(address,(address,bool,(address,address,address),(address,uint8,uint256)[],(address,uint8,uint256)[]),(address,bool,(address,address,address),(address,uint8,uint256)[],(address,uint8,uint256)[]),(uint256,uint256,uint256,uint256,uint256,uint256))
+          handler: handleClear
+        - event: Context(address,uint256[][])
+          handler: handleContext
+        - event: Deposit(address,(address,uint256,uint256))
+          handler: handleDeposit
+        - event: MetaV1(address,uint256,bytes)
+          handler: handleMetaV1
+        - event: OrderExceedsMaxRatio(address,address,uint256)
+          handler: handleOrderExceedsMaxRatio
+        - event: OrderNotFound(address,address,uint256)
+          handler: handleOrderNotFound
+        - event: OrderZeroAmount(address,address,uint256)
+          handler: handleOrderZeroAmount
+        - event: RemoveOrder(address,(address,bool,(address,address,address),(address,uint8,uint256)[],(address,uint8,uint256)[]),uint256)
+          handler: handleRemoveOrder
+        - event: TakeOrder(address,((address,bool,(address,address,address),(address,uint8,uint256)[],(address,uint8,uint256)[]),uint256,uint256,(address,bytes,uint256[])[]),uint256,uint256)
+          handler: handleTakeOrder
+        - event: Withdraw(address,(address,uint256,uint256),uint256)
+          handler: handleWithdraw
       file: ./src/orderBook.ts  
 templates: 
   - kind: ethereum/contract

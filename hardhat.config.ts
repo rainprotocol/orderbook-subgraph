@@ -39,7 +39,7 @@ const config: HardhatUserConfig = {
         ? [process.env["DEPLOYMENT_KEY_MUMBAI"]]
         : [],
     },
-    localhost: createLocalhostConfig()
+    localhost: createLocalhostConfig(),
   },
   defaultNetwork: "localhost",
   solidity: {

@@ -48,6 +48,16 @@ let
 
   install-submodules = pkgs.writeShellScriptBin "install-submodules" ''
     mkdir -p lib
+
+    git -C lib clone https://github.com/foundry-rs/forge-std.git
+    git -C lib clone https://github.com/rainprotocol/rain.cooldown.git
+    git -C lib clone https://github.com/rainprotocol/rain.math.saturating.git
+    git -C lib clone https://github.com/rainprotocol/sol.lib.binmaskflag.git
+    git -C lib clone https://github.com/rainprotocol/sol.lib.datacontract.git
+    git -C lib clone https://github.com/rainprotocol/sol.metadata.git
+
+    git -C lib//sol.lib.datacontract checkout 80aaaa8 
+
     git submodule add https://github.com/foundry-rs/forge-std.git lib/forge-std
     git submodule add https://github.com/rainprotocol/rain.cooldown.git lib/rain.cooldown
     git submodule add https://github.com/rainprotocol/rain.math.saturating.git lib/rain.math.saturating
@@ -83,9 +93,14 @@ let
     mkdir -p schema && cp -r node_modules/@rainprotocol/rain-protocol/schema .
     mkdir -p utils && cp -r node_modules/@rainprotocol/rain-protocol/utils .
     cp node_modules/@rainprotocol/rain-protocol/foundry.toml .
+    mkdir -p contracts/test/orderbook && cp sg_test_contracts/*.sol contracts/test/orderbook/
     install-submodules
     compile
     copy-abis
+  '';
+
+  ci-prepare-subgraph = pkgs.writeShellScriptBin "ci-prepare-subgraph" ''
+    npx mustache config/polygon.json subgraph.template.yaml subgraph.yaml
   '';
   
 in

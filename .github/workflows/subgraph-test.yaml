@@ -1,4 +1,4 @@
-name: MetaBoard Subgraph CI
+name: Orderbook Subgraph CI
 on: [push]
 
 jobs:
@@ -13,7 +13,7 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: nightly
-          
+
       - uses: cachix/install-nix-action@v13
         with:
           nix_path: nixpkgs=channel:nixos-unstable
@@ -21,15 +21,43 @@ jobs:
       - name: install npm dependencies
         run: |
           nix-shell --run init
-          
+
       - name: Build Docker Compose images
         run: |
           nix-shell --run docker-down
           nix-shell --run docker-up
-      
 
       - name: Run Subgraph tests
         run: nix-shell --run ci-test
 
       - name: Stop containers
         run: nix-shell --run docker-down
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main'
+
+    defaults:
+      run:
+        working-directory: ./subgraph
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - uses: cachix/install-nix-action@v13
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+
+      - name: install npm dependencies
+        run: |
+          nix-shell --run init
+
+      - name: Prepare subgraph manifest
+        run: nix-shell --run ci-prepare-subgraph
+
+      - name: Graph Authentication
+        run: npx graph auth --product hosted-service $THE_GRAPH_API_TOKEN
+
+      - name: Graph Deployments
+        run: npx graph deploy --product hosted-service rainprotocol/orderbook-polygon
