@@ -3,14 +3,8 @@ import {
   IO,
   MetaContentV1,
   Order,
-  OrderBook,
   OrderClearStateChange,
-  RainMetaV1,
-  TakeOrderEntity,
-  TokenVault,
   ClearOrderConfig,
-  VaultDeposit,
-  VaultWithdraw,
 } from "../generated/schema";
 import {
   AddOrder,
@@ -29,16 +23,12 @@ import {
   ClearAliceStruct,
 } from "../generated/OrderBook/OrderBook";
 import {
-  Address,
   BigInt,
-  ByteArray,
   Bytes,
   JSONValue,
   JSONValueKind,
   TypedMap,
-  crypto,
   json,
-  log,
 } from "@graphprotocol/graph-ts";
 
 import {
@@ -50,6 +40,8 @@ import {
   createToken,
   createTokenVault,
   createVault,
+  createVaultDeposit,
+  createVaultWithdraw,
   getKeccak256FromBytes,
   getOB,
   getRainMetaV1,
@@ -206,8 +198,69 @@ export function handleClear(event: Clear): void {
   let config = new ClearOrderConfig("1");
   config.orderClearId = orderClear.id;
   config.save();
-}
 
+  let alice = event.params.alice;
+  for (let i = 0; i < alice.validInputs.length; i++) {
+    let tokenVault = createTokenVault(
+      alice.validInputs[i].vaultId.toString(),
+      alice.owner,
+      alice.validInputs[i].token
+    );
+
+    if (tokenVault) {
+      let orderClears = tokenVault.orderClears;
+      if (orderClears) orderClears.push(orderClear.id);
+      tokenVault.orderClears = orderClears;
+      tokenVault.save();
+    }
+  }
+
+  for (let i = 0; i < alice.validOutputs.length; i++) {
+    let tokenVault = createTokenVault(
+      alice.validOutputs[i].vaultId.toString(),
+      alice.owner,
+      alice.validOutputs[i].token
+    );
+
+    if (tokenVault) {
+      let orderClears = tokenVault.orderClears;
+      if (orderClears) orderClears.push(orderClear.id);
+      tokenVault.orderClears = orderClears;
+      tokenVault.save();
+    }
+  }
+
+  let bob = event.params.bob;
+  for (let i = 0; i < bob.validInputs.length; i++) {
+    let tokenVault = createTokenVault(
+      bob.validInputs[i].vaultId.toString(),
+      bob.owner,
+      bob.validInputs[i].token
+    );
+
+    if (tokenVault) {
+      let orderClears = tokenVault.orderClears;
+      if (orderClears) orderClears.push(orderClear.id);
+      tokenVault.orderClears = orderClears;
+      tokenVault.save();
+    }
+  }
+
+  for (let i = 0; i < bob.validOutputs.length; i++) {
+    let tokenVault = createTokenVault(
+      bob.validOutputs[i].vaultId.toString(),
+      bob.owner,
+      bob.validOutputs[i].token
+    );
+
+    if (tokenVault) {
+      let orderClears = tokenVault.orderClears;
+      if (orderClears) orderClears.push(orderClear.id);
+      tokenVault.orderClears = orderClears;
+      tokenVault.save();
+    }
+  }
+}
 export function handleContext(event: Context): void {}
 
 export function handleDeposit(event: Deposit): void {
@@ -222,7 +275,7 @@ export function handleDeposit(event: Deposit): void {
     tokenVault.save();
   }
 
-  let vaultDeposit = new VaultDeposit(event.transaction.hash);
+  let vaultDeposit = createVaultDeposit(event.transaction.hash.toHex());
   vaultDeposit.sender = createAccount(event.params.sender).id;
   vaultDeposit.token = createToken(event.params.config.token).id;
   vaultDeposit.vaultId = event.params.config.vaultId;
@@ -288,7 +341,7 @@ export function handleWithdraw(event: Withdraw): void {
     tokenVault.save();
   }
 
-  let vaultWithdraw = new VaultWithdraw(event.transaction.hash);
+  let vaultWithdraw = createVaultWithdraw(event.transaction.hash.toHex());
   vaultWithdraw.sender = createAccount(event.params.sender).id;
   vaultWithdraw.token = createToken(event.params.config.token).id;
   vaultWithdraw.vaultId = event.params.config.vaultId;
@@ -389,7 +442,6 @@ export function handleMetaV1(event: MetaV1): void {
     return;
   }
 }
-
 export class ContentMeta {
   rainMetaId: Bytes;
   payload: Bytes = Bytes.empty();

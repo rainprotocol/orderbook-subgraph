@@ -141,7 +141,7 @@ type TokenVault @entity {
 
 # Created for every Deposit event
 type VaultDeposit @entity {
-  id: Bytes! # use txhash of the event
+  id: ID! # use txhash of the event
   "The transaction sender of this deposit"
   sender: Account! # Deposit.sender
   "The token that was deposited"
@@ -158,7 +158,7 @@ type VaultDeposit @entity {
 
 # Created for every Withdraw event
 type VaultWithdraw @entity {
-  id: Bytes! # use txhash of the event
+  id: ID! # use txhash of the event
   "The transaction sender of this withdrawal"
   sender: Account! # Withdrawal.sender
   "The token that was withdrawn"
@@ -191,6 +191,8 @@ type Account @entity {
   ordersCleared: [OrderClear!] @derivedFrom(field: "clearer")
   bounties: [Bounty!] @derivedFrom(field: "clearer")
   takeOrderEntities: [TakeOrderEntity!] @derivedFrom(field: "sender")
+  vaults: [Vault!] @derivedFrom(field: "owner")
+  tokenVaults: [TokenVault!] @derivedFrom(field: "owner")
 }
 
 # Created for every pair of AfterClear/Clear events

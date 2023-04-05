@@ -6,9 +6,9 @@ dataSources:
     name: OrderBook
     network: localhost
     source:
-      address: "0x0EA531B186fdEA915e94AF8A93C6dfb85b407f5A"
+      address: "0x9A86494Ba45eE1f9EEed9cFC0894f6C5d13a1F0b"
       abi: OrderBook
-      startBlock: 3616
+      startBlock: 827
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6

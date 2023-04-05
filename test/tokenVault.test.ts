@@ -37,7 +37,7 @@ import {
 import { getEventArgs, waitForSubgraphToBeSynced } from "./utils";
 import { DepositConfigStruct } from "../typechain/contracts/orderbook/IOrderBookV1";
 
-describe("TokenVault entity", () => {
+describe.only("TokenVault entity", () => {
   let tokenA: ReserveToken18;
   let tokenB: ReserveToken18;
 
@@ -1216,6 +1216,8 @@ describe("TokenVault entity", () => {
     const tokenVault_Input_ID = `${aliceInputVault.toString()}-${alice.address.toLowerCase()}-${tokenA.address.toLowerCase()}`;
     const tokenVault_Output_ID = `${aliceOutputVault.toString()}-${alice.address.toLowerCase()}-${tokenB.address.toLowerCase()}`;
 
+    const clearOrder_ID = `${txClearOrder.hash}-0`;
+
     const query = `{
       tokenVaultInput: tokenVault (id: "${tokenVault_Input_ID}") {
         orderClears {
@@ -1230,18 +1232,16 @@ describe("TokenVault entity", () => {
     }`;
 
     const response = (await subgraph({ query })) as FetchResult;
-    console.log(JSON.stringify(response, null, 2));
-    console.log(tokenVault_Input_ID);
-    console.log(tokenVault_Output_ID);
+
     const dataInput = response.data.tokenVaultInput;
     const dataOutput = response.data.tokenVaultOutput;
 
     // TODO: Rework on the OrderClear entity for their ID @vishal @naneez
     expect(dataInput.orderClears).to.deep.include({
-      id: "<OrderClear_ID>",
+      id: clearOrder_ID,
     });
     expect(dataOutput.orderClears).to.deep.include({
-      id: "<OrderClear_ID>",
+      id: clearOrder_ID,
     });
   });
 
@@ -1442,6 +1442,9 @@ describe("TokenVault entity", () => {
     }`;
 
     const response = (await subgraph({ query })) as FetchResult;
+    console.log(JSON.stringify(response, null, 2));
+    console.log(tokenVault_A_ID);
+    console.log(tokenVault_B_ID);
 
     const data = response.data.tokenVaults;
 

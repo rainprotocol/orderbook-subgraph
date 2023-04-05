@@ -20,6 +20,8 @@ import {
   TakeOrderEntity,
   TokenVault,
   Vault,
+  VaultDeposit,
+  VaultWithdraw,
 } from "../generated/schema";
 import { ReserveToken } from "../generated/OrderBook/ReserveToken";
 import {
@@ -128,6 +130,7 @@ export function createTokenVault(
     tokenVault.balance = BigInt.zero();
     tokenVault.vault = createVault(vaultId, owner).id;
     tokenVault.orders = [];
+    tokenVault.orderClears = [];
     tokenVault.save();
   }
   return tokenVault;
@@ -222,20 +225,32 @@ export function createTakeOrderConfig(txHash: string): TakeOrderEntity {
 
 export function createOrderClear(txHash: string): OrderClear {
   for (let i = 0; ; i++) {
-    let tupleArray: Array<ethereum.Value> = [
-      ethereum.Value.fromString(txHash),
-      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(i)),
-    ];
-
-    let tuple = changetype<ethereum.Tuple>(tupleArray);
-    let encodedOrder = ethereum.encode(ethereum.Value.fromTuple(tuple))!;
-    let keccak256 = crypto.keccak256(encodedOrder as ByteArray);
     let orderClear = OrderClear.load(`${txHash}-${i}`);
     if (!orderClear) {
       return new OrderClear(`${txHash}-${i}`);
     }
   }
   return new OrderClear("");
+}
+
+export function createVaultDeposit(txHash: string): VaultDeposit {
+  for (let i = 0; ; i++) {
+    let orderClear = VaultDeposit.load(`${txHash}-${i}`);
+    if (!orderClear) {
+      return new VaultDeposit(`${txHash}-${i}`);
+    }
+  }
+  return new VaultDeposit("");
+}
+
+export function createVaultWithdraw(txHash: string): VaultWithdraw {
+  for (let i = 0; ; i++) {
+    let orderClear = VaultWithdraw.load(`${txHash}-${i}`);
+    if (!orderClear) {
+      return new VaultWithdraw(`${txHash}-${i}`);
+    }
+  }
+  return new VaultWithdraw("");
 }
 
 export function getOB(obAddress_: Address): OrderBook {
