@@ -109,7 +109,7 @@ describe("Vault entity", () => {
     assert(sender_A === alice.address, "wrong sender");
     compareStructs(order_A, orderConfig_A);
 
-    await waitForSubgraphToBeSynced(500);
+    await waitForSubgraphToBeSynced(1000);
 
     // Subgraph check
     const vault_input_ID = `${aliceInputVault.toString()}-${alice.address.toLowerCase()}`;
@@ -234,7 +234,7 @@ describe("Vault entity", () => {
       "Wrong: Not the same VaultID in deposits"
     );
 
-    await waitForSubgraphToBeSynced(500);
+    await waitForSubgraphToBeSynced(1000);
 
     // Subgraph check
     const vault_ID = `${depositAliceConfig_A.vaultId.toString()}-${alice.address.toLowerCase()}`;
@@ -371,7 +371,7 @@ describe("Vault entity", () => {
     compareStructs(depositAliceConfig, depositConfigStructAlice);
 
     // Wait for sync
-    await waitForSubgraphToBeSynced(500);
+    await waitForSubgraphToBeSynced(1000);
 
     // Subgraph check
     const vault_input_ID = `${aliceInputVault.toString()}-${alice.address.toLowerCase()}`;
@@ -465,7 +465,7 @@ describe("Vault entity", () => {
     );
 
     // Wait for sync
-    await waitForSubgraphToBeSynced(500);
+    await waitForSubgraphToBeSynced(1000);
 
     // Subgraph check
     const vault_input_ID = `${depositConfig.vaultId.toString()}-${alice.address.toLowerCase()}`;
@@ -672,7 +672,7 @@ describe("Vault entity", () => {
     compareStructs(clearStateChange, expectedClearStateChange);
 
     // Subgraph check
-    await waitForSubgraphToBeSynced(500);
+    await waitForSubgraphToBeSynced(1000);
 
     // Vault ID where the bounty will be move
     const { aliceBountyVaultId, bobBountyVaultId } = clearBountyConfig;

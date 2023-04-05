@@ -263,7 +263,7 @@ describe("TokenVault entity", () => {
     compareStructs(order_B, orderConfig);
 
     // Subgraph check
-    await waitForSubgraphToBeSynced(500);
+    await waitForSubgraphToBeSynced(1000);
 
     // TokenVault: #{vaultId}-{owner}-{token}
     const tokenVault_Input_ID = `${aliceInputVault.toString()}-${alice.address.toLowerCase()}-${tokenA.address.toLowerCase()}`;
@@ -374,7 +374,7 @@ describe("TokenVault entity", () => {
 
     // Checking SG entity after adding order to confirm status
     // Subgraph check
-    await waitForSubgraphToBeSynced(500);
+    await waitForSubgraphToBeSynced(1000);
 
     // Alice Data IDs: (across the test)
     // - Token Vault:
@@ -467,7 +467,7 @@ describe("TokenVault entity", () => {
 
     // Check the TokenVaults after deposits
     // Subgraph check
-    await waitForSubgraphToBeSynced(500);
+    await waitForSubgraphToBeSynced(1000);
 
     const query_1 = `{
       tokenVaultInputAlice: tokenVault (id: "${tokenVault_Input_Alice_ID}") {
@@ -555,7 +555,7 @@ describe("TokenVault entity", () => {
     aliceVaultTracker = aliceVaultTracker.add(depositConfig.amount);
 
     // Subgraph check
-    await waitForSubgraphToBeSynced(500);
+    await waitForSubgraphToBeSynced(1000);
 
     const query_0 = `{
       tokenVault (id: "${tokenVault_Input_Alice_ID}") {
@@ -611,7 +611,7 @@ describe("TokenVault entity", () => {
     aliceVaultTracker = aliceVaultTracker.sub(withdrawConfig.amount);
 
     // Subgraph check
-    await waitForSubgraphToBeSynced(500);
+    await waitForSubgraphToBeSynced(1000);
 
     const query_1 = `{
       tokenVault (id: "${tokenVault_Input_Alice_ID}") {
@@ -708,7 +708,7 @@ describe("TokenVault entity", () => {
 
     // Checking SG entity after adding order to confirm status
     // Subgraph check
-    await waitForSubgraphToBeSynced(500);
+    await waitForSubgraphToBeSynced(1000);
 
     // Alice Data IDs: (across the test)
     // - Token Vault:
@@ -821,7 +821,7 @@ describe("TokenVault entity", () => {
 
     // Check the TokenVaults after deposits
     // Subgraph check
-    await waitForSubgraphToBeSynced(500);
+    await waitForSubgraphToBeSynced(1000);
 
     const query_1 = `{
       tokenVaultInputAlice: tokenVault (id: "${tokenVault_Input_Alice_ID}") {
@@ -983,7 +983,7 @@ describe("TokenVault entity", () => {
 
     // Check the TokenVaults after Clearing
     // Subgraph check
-    await waitForSubgraphToBeSynced(500);
+    await waitForSubgraphToBeSynced(1000);
 
     const query_2 = `{
       tokenVaultInputAlice: tokenVault (id: "${tokenVault_Input_Alice_ID}") {
@@ -1206,7 +1206,7 @@ describe("TokenVault entity", () => {
     compareStructs(clearStateChange, expectedClearStateChange);
 
     // Subgraph check
-    await waitForSubgraphToBeSynced(500);
+    await waitForSubgraphToBeSynced(1000);
 
     // TokenVault: #{vaultId}-{owner}-{token}
     const tokenVault_Input_ID = `${aliceInputVault.toString()}-${alice.address.toLowerCase()}-${tokenA.address.toLowerCase()}`;
@@ -1422,7 +1422,7 @@ describe("TokenVault entity", () => {
     compareStructs(clearStateChange, expectedClearStateChange);
 
     // Subgraph check
-    await waitForSubgraphToBeSynced(500);
+    await waitForSubgraphToBeSynced(1000);
 
     // Vault ID where the bounty will be move
     const { aliceBountyVaultId, bobBountyVaultId } = clearBountyConfig;

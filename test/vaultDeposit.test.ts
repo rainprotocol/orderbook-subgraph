@@ -65,7 +65,7 @@ describe("VaultDeposit entity", () => {
     compareStructs(depositConfig, depositConfigStruct);
 
     // Subgrpah check
-    await waitForSubgraphToBeSynced(500);
+    await waitForSubgraphToBeSynced(1000);
 
     // VaultDeposit ID: `tx.hash-{N}` where n is the N deposit with the same tx.hash;
     // In this case, the tx only made one deposit, so the N is 0
@@ -153,7 +153,7 @@ describe("VaultDeposit entity", () => {
     )) as Array<DepositEvent["args"]>;
 
     // Subgraph check
-    await waitForSubgraphToBeSynced(500);
+    await waitForSubgraphToBeSynced(1000);
 
     for (let i = 0; i < depositEvents.length; i++) {
       // Using the Deposit event for a given index

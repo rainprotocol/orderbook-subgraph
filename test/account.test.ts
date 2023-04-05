@@ -113,7 +113,7 @@ describe("Account entity", () => {
     compareStructs(order_A, orderConfig_A);
 
     // Subgraph check
-    await waitForSubgraphToBeSynced(500);
+    await waitForSubgraphToBeSynced(1000);
 
     const query = `{
       account (id: "${alice.address.toLowerCase()}") {
@@ -167,7 +167,7 @@ describe("Account entity", () => {
     compareStructs(depositConfig, depositConfigStruct);
 
     // Subgraph check
-    await waitForSubgraphToBeSynced(500);
+    await waitForSubgraphToBeSynced(1000);
 
     // VaultDeposit ID: `tx.hash-{N}` where n is the N deposit with the same tx.hash;
     // In this case, the tx only made one deposit, so the N is 0
@@ -258,7 +258,7 @@ describe("Account entity", () => {
     );
 
     // Subgraph check
-    await waitForSubgraphToBeSynced(500);
+    await waitForSubgraphToBeSynced(1000);
 
     // VaultWithdraw ID: `tx.hash-{N}` where n is the N withdraw with the same tx.hash;
     // In this case, the tx only made one withdraw, so the N is 0
@@ -463,7 +463,7 @@ describe("Account entity", () => {
     compareStructs(clearStateChange, expectedClearStateChange);
 
     // Subgraph check
-    await waitForSubgraphToBeSynced(500);
+    await waitForSubgraphToBeSynced(1000);
 
     const query = `{
       account (id: "${bountyBot.address.toLowerCase()}") {
@@ -599,7 +599,7 @@ describe("Account entity", () => {
     const takeOrderEntity_ID = `${txTakeOrders.hash.toLowerCase()}-${0}`;
 
     // Subgraph check
-    await waitForSubgraphToBeSynced(500);
+    await waitForSubgraphToBeSynced(1000);
 
     const query = `{
       account (id: "${bob.address.toLowerCase()}") {

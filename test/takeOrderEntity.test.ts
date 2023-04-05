@@ -150,7 +150,7 @@ describe("TakeOrderEntity", () => {
     assert(tokenAAliceBalanceWithdrawn.eq(amountA));
 
     // Subgraph check
-    await waitForSubgraphToBeSynced(500);
+    await waitForSubgraphToBeSynced(1000);
 
     for (let i = 0; i < takeOrderEvents.length; i++) {
       // ID: tx.hash - N (N-th order taken)

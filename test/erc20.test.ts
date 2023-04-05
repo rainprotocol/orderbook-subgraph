@@ -98,7 +98,7 @@ describe("ERC20 entity", () => {
     compareStructs(order_A, orderConfig_A);
 
     // Subgraph check
-    await waitForSubgraphToBeSynced(500);
+    await waitForSubgraphToBeSynced(1000);
 
     const query = `{
       tokenA: erc20 (id: "${tokenA.address.toLowerCase()}") {
@@ -171,7 +171,7 @@ describe("ERC20 entity", () => {
     compareStructs(depositConfig, depositConfigStruct);
 
     // Subgraph check
-    await waitForSubgraphToBeSynced(500);
+    await waitForSubgraphToBeSynced(1000);
 
     const query = `{
       erc20 (id: "${tokenA.address.toLowerCase()}") {
@@ -256,7 +256,7 @@ describe("ERC20 entity", () => {
     compareStructs(order_A, orderConfig_A);
 
     // Subgraph check
-    await waitForSubgraphToBeSynced(500);
+    await waitForSubgraphToBeSynced(1000);
 
     const query = `{
       nonErc20_A: erc20 (id: "${nonErc20_A.address.toLowerCase()}") {
