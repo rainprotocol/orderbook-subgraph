@@ -215,6 +215,7 @@ describe("Order entity", () => {
     const bobInputVault = ethers.BigNumber.from(randomUint256());
     const bobOutputVault = ethers.BigNumber.from(randomUint256());
 
+    // TODO: This is a WRONG encoding meta (FIX: @naneez)
     const aliceOrder = encodeMeta("Order_A");
 
     // Order_A
@@ -289,6 +290,7 @@ describe("Order entity", () => {
       bRatio,
     ]);
 
+    // TODO: This is a WRONG encoding meta (FIX: @naneez)
     const bobOrder = encodeMeta("Order_B");
 
     const EvaluableConfig_B = await generateEvaluableConfig(
@@ -364,6 +366,7 @@ describe("Order entity", () => {
       aOpMax,
       aRatio,
     ]);
+    // TODO: This is a WRONG encoding meta (FIX: @naneez)
     const aliceOrder = encodeMeta("Order_A");
 
     const EvaluableConfig_A = await generateEvaluableConfig(

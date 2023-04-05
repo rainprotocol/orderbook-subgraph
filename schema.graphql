@@ -1,15 +1,15 @@
 type OrderBook @entity {
   id: Bytes!
-  deployer: Bytes!
+  deployer: Bytes
   address: Bytes!
   "The RainMetaV1 decode information"
-  meta: [RainMetaV1!] # Use the CBOR AS library to decode the meta emitted by the OB
+  meta: RainMetaV1 # Use the CBOR AS library to decode the meta emitted by the OB
 }
 
 type RainMetaV1 @entity {
-  "Hash of the meta emitted by the contract"
-  id: Bytes! # Hash of the meta emitted by the contract. Including the MagicNumber.
-  "Original meta bytes emitted from the contract"
+  "Hash of the meta directly emitted by the contract"
+  id: Bytes! # Include the RainMeta MagicNumber.
+  "Original meta bytes directly emitted from the contract"
   metaBytes: Bytes! # Original meta bytes emitted from the contract
   "The meta content V1 decoded from the meta bytes emitted"
   content: [MetaContentV1!] @derivedFrom(field: "documents")
@@ -17,19 +17,19 @@ type RainMetaV1 @entity {
 
 type MetaContentV1 @entity {
   "The hash of the Map Rain Meta document or CBOR Item"
-  id: ID! # Hash of the whole stringify data.
+  id: Bytes! # Hash of the whole stringify data.
   "The payload present on the index 0 of the Rain meta Document"
-  payload: String!
+  payload: Bytes!
   "The magic number that is used to track the payload"
   magicNumber: BigInt!
   "The header name info for Content-Type"
-  contentType: String!
+  contentType: String
   "The header name info for Content-Encoding. It's optional"
   contentEncoding: String
   "The header name info for Content-Language. It's optional"
   contentLanguage: String
   "RainMeta documents bytes that have this content"
-  documents: [RainMetaV1!]
+  documents: [RainMetaV1!]!
 }
 
 # Created with the first AddOrder event, then updated on the corresponding AddOrder/RemoveOrder events

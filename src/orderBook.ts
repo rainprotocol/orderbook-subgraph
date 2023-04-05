@@ -1,10 +1,12 @@
 import {
   Bounty,
   IO,
+  MetaContentV1,
   Order,
   OrderBook,
   OrderClear,
   OrderClearStateChange,
+  RainMetaV1,
   TakeOrderEntity,
   TokenVault,
   VaultDeposit,
@@ -28,22 +30,32 @@ import {
 } from "../generated/OrderBook/OrderBook";
 import {
   Address,
+  BigInt,
   ByteArray,
   Bytes,
   JSONValue,
+  JSONValueKind,
+  TypedMap,
   crypto,
   json,
   log,
 } from "@graphprotocol/graph-ts";
 import {
+  RAIN_META_DOCUMENT_HEX,
   createAccount,
   createOrder,
   createOrderClear,
   createToken,
   createTokenVault,
   createVault,
+  getKeccak256FromBytes,
+  getOB,
+  getRainMetaV1,
   hashTakeOrderConfig,
+  isHexadecimalString,
+  stringToArrayBuffer,
 } from "./utiils";
+import { CBORDecoder } from "@rainprotocol/assemblyscript-cbor";
 
 export function handleAddOrder(event: AddOrder): void {
   let order = new Order(event.params.orderHash.toHex());
@@ -289,44 +301,243 @@ export function handleWithdraw(event: Withdraw): void {
 }
 
 export function handleInitialized(event: Initialized): void {
-  let orderBook = new OrderBook(event.address);
+  let orderBook = getOB(event.address);
   orderBook.address = event.address;
   orderBook.deployer = event.transaction.from;
   orderBook.save();
 }
 
 export function handleMetaV1(event: MetaV1): void {
-  // TODO: Use `event.params.subject.toHex()` to check if the Subject match with the
-  // MetaV1 emmiter. if that's the case, then this MetaV1 event is from OB construction
-  // and should be added to the OB entity. Otherwise, is emitted somewhere else (like AddOrder)
-  // const addBN = Address.fromBigInt(event.params.subject);
-  // const addHS = Address.fromHexString(event.params.subject.toHexString());
-  // // let orderBook = new OrderBook(event.address);
-  // // let rainMetaV1_ID = Bytes.fromByteArray(
-  // //   crypto.keccak256(Bytes.fromByteArray(event.params.meta))
-  // // );
-  // // let rainMetaV1 = new RainMetaV1(rainMetaV1_ID);
-  // // rainMetaV1.metaBytes = event.params.meta;
-  // // rainMetaV1.orderBook = event.address;
-  // // rainMetaV1.save();
-  // let metaData = event.params.meta.toHex().slice(18);
-  // let data = new CBORDecoder(stringToArrayBuffer(metaData));
-  // const res = data.parse();
-  // if (res.isSequence) {
-  //   log.info(`res.isSequence: ${res.isSequence}`, []);
-  //   const dataString = res.toString();
-  //   log.info(`dataString: ${dataString}`, []);
-  //   let jsonArr = json.fromString(dataString).toArray();
-  //   log.info(`jsonArr.length: ${jsonArr.length}`, []);
-  //   for (let i = 0; i < jsonArr.length; i++) {
-  //     let metaContent = jsonArr[i].toObject();
-  //     // const payload = metaContent.get("0") as JSONValue;
-  //     // let id = `${event.transaction.hash.toHex()}-${i.toString()}`;
-  //     // let _metaContentV1 = createMetaContentV1(id, metaContent, rainMetaV1_ID);
-  //   }
-  // } else if (res.isObj) {
-  //   // It's a map and not a sequence
-  // } else {
-  //   return;
-  // }
+  const metaV1 = getRainMetaV1(event.params.meta);
+  let subjectHex = event.params.subject.toHex();
+
+  if (subjectHex.length % 2) {
+    subjectHex = subjectHex.slice(0, 2) + "0" + subjectHex.slice(2);
+  }
+
+  // If the subject is equal to the OB address, then the meta data is the OB meta
+  if (subjectHex == event.address.toHex()) {
+    const orderBook = getOB(event.address);
+    orderBook.meta = metaV1.id;
+    orderBook.save();
+  } else {
+    // If not, the subject is an OrderHash then it's an Order meta
+    const orderHash = event.params.subject.toHex();
+    const order = Order.load(orderHash);
+    if (order) {
+      order.meta = metaV1.id;
+      order.save();
+    }
+  }
+
+  // Converts the emitted target from Bytes to a Hexadecimal value
+  let meta = event.params.meta.toHex();
+
+  // Decode the meta only if incluse the RainMeta magic number.
+  if (meta.includes(RAIN_META_DOCUMENT_HEX)) {
+    meta = meta.replace(RAIN_META_DOCUMENT_HEX, "");
+    const data = new CBORDecoder(stringToArrayBuffer(meta));
+    const res = data.parse();
+
+    const contentArr: ContentMeta[] = [];
+
+    if (res.isSequence) {
+      const dataString = res.toString();
+      const jsonArr = json.fromString(dataString).toArray();
+      for (let i = 0; i < jsonArr.length; i++) {
+        const jsonValue = jsonArr[i];
+
+        // if some value is not a JSON/Map, then is not following the RainMeta design.
+        // So, return here to avoid assignation.
+        if (jsonValue.kind != JSONValueKind.OBJECT) return;
+
+        const jsonContent = jsonValue.toObject();
+
+        // If some content is not valid, then skip it since is bad formed
+        if (!ContentMeta.validate(jsonContent)) return;
+
+        const content = new ContentMeta(jsonContent, metaV1.id);
+        contentArr.push(content);
+      }
+    } else if (res.isObj) {
+      const dataString = res.toString();
+      const jsonObj = json.fromString(dataString).toObject();
+
+      if (!ContentMeta.validate(jsonObj)) return;
+      const content = new ContentMeta(jsonObj, metaV1.id);
+      contentArr.push(content);
+      //
+    } else {
+      // If the response is NOT a Sequence or an Object, then the meta have an
+      // error or it's bad formed.
+      // In this case, we skip to continue the decoding and assignation process.
+      return;
+    }
+
+    for (let i = 0; i < contentArr.length; i++) {
+      contentArr[i].generate();
+    }
+  } else {
+    // The meta emitted does not include the RainMeta magic number, so does not
+    // follow the RainMeta Desing
+    return;
+  }
+}
+
+export class ContentMeta {
+  rainMetaId: Bytes;
+  payload: Bytes = Bytes.empty();
+  magicNumber: BigInt = BigInt.zero();
+  contentType: string = "";
+  contentEncoding: string = "";
+  contentLanguage: string = "";
+
+  constructor(
+    metaContentV1Object_: TypedMap<string, JSONValue>,
+    rainMetaID_: Bytes
+  ) {
+    const payload = metaContentV1Object_.get("0");
+    const magicNumber = metaContentV1Object_.get("1");
+    const contentType = metaContentV1Object_.get("2");
+    const contentEncoding = metaContentV1Object_.get("3");
+    const contentLanguage = metaContentV1Object_.get("4");
+
+    // RainMetaV1 ID
+    this.rainMetaId = rainMetaID_;
+
+    // Mandatories keys
+    if (payload) {
+      let auxPayload = payload.toString();
+      if (auxPayload.startsWith("h'")) {
+        auxPayload = auxPayload.replace("h'", "");
+      }
+      if (auxPayload.endsWith("'")) {
+        auxPayload = auxPayload.replace("'", "");
+      }
+
+      this.payload = Bytes.fromHexString(auxPayload);
+    }
+
+    // if (payload) this.payload = payload.toString();
+    if (magicNumber) this.magicNumber = magicNumber.toBigInt();
+
+    // Keys optionals
+    if (contentType) this.contentType = contentType.toString();
+    if (contentEncoding) this.contentEncoding = contentEncoding.toString();
+    if (contentLanguage) this.contentLanguage = contentLanguage.toString();
+  }
+
+  /**
+   * Validate that the keys exist on the map
+   */
+  static validate(metaContentV1Object: TypedMap<string, JSONValue>): boolean {
+    const payload = metaContentV1Object.get("0");
+    const magicNumber = metaContentV1Object.get("1");
+    const contentType = metaContentV1Object.get("2");
+    const contentEncoding = metaContentV1Object.get("3");
+    const contentLanguage = metaContentV1Object.get("4");
+
+    // Only payload and magicNumber are mandatory on RainMetaV1
+    // See: https://github.com/rainprotocol/specs/blob/main/metadata-v1.md
+    if (payload && magicNumber) {
+      if (
+        payload.kind == JSONValueKind.STRING ||
+        magicNumber.kind == JSONValueKind.NUMBER
+      ) {
+        // Check if payload is a valid Bytes (hexa)
+        let auxPayload = payload.toString();
+        if (auxPayload.startsWith("h'")) {
+          auxPayload = auxPayload.replace("h'", "");
+        }
+        if (auxPayload.endsWith("'")) {
+          auxPayload = auxPayload.replace("'", "");
+        }
+
+        // If the payload is not a valid bytes value
+        if (!isHexadecimalString(auxPayload)) {
+          return false;
+        }
+
+        // Check the type of optionals keys
+        if (contentType) {
+          if (contentType.kind != JSONValueKind.STRING) {
+            return false;
+          }
+        }
+        if (contentEncoding) {
+          if (contentEncoding.kind != JSONValueKind.STRING) {
+            return false;
+          }
+        }
+        if (contentLanguage) {
+          if (contentLanguage.kind != JSONValueKind.STRING) {
+            return false;
+          }
+        }
+
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private getContentId(): Bytes {
+    // Values as Bytes
+    const payloadB = this.payload;
+    const magicNumberB = Bytes.fromHexString(this.magicNumber.toHex());
+    const contentTypeB = Bytes.fromUTF8(this.contentType);
+    const contentEncodingB = Bytes.fromUTF8(this.contentEncoding);
+    const contentLanguageB = Bytes.fromUTF8(this.contentLanguage);
+
+    // payload +  magicNumber + contentType + contentEncoding + contentLanguage
+    const contentId = getKeccak256FromBytes(
+      payloadB
+        .concat(magicNumberB)
+        .concat(contentTypeB)
+        .concat(contentEncodingB)
+        .concat(contentLanguageB)
+    );
+
+    return contentId;
+  }
+
+  /**
+   * Create or generate a MetaContentV1 entity based on the current fields:
+   *
+   * - If the MetaContentV1 does not exist, create the MetaContentV1 entity and
+   * made the relation to the rainMetaId.
+   *
+   * - If the MetaContentV1 does exist, add the relation to the rainMetaId.
+   */
+  generate(): MetaContentV1 {
+    const contentId = this.getContentId();
+
+    let metaContent = MetaContentV1.load(contentId);
+
+    if (!metaContent) {
+      metaContent = new MetaContentV1(contentId);
+
+      metaContent.payload = this.payload;
+      metaContent.magicNumber = this.magicNumber;
+      metaContent.documents = [];
+
+      if (this.contentType != "") metaContent.contentType = this.contentType;
+
+      if (this.contentEncoding != "")
+        metaContent.contentEncoding = this.contentEncoding;
+
+      if (this.contentLanguage != "")
+        metaContent.contentLanguage = this.contentLanguage;
+    }
+
+    const aux = metaContent.documents;
+    if (!aux.includes(this.rainMetaId)) aux.push(this.rainMetaId);
+
+    metaContent.documents = aux;
+
+    metaContent.save();
+
+    return metaContent;
+  }
 }

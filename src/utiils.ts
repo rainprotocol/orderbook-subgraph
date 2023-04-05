@@ -14,15 +14,20 @@ import {
   ERC20,
   MetaContentV1,
   Order,
+  OrderBook,
   OrderClear,
+  RainMetaV1,
   TokenVault,
   Vault,
 } from "../generated/schema";
 import { ReserveToken } from "../generated/OrderBook/ReserveToken";
 import {
   ClearAliceStruct,
+  MetaV1,
   TakeOrderConfigStruct,
 } from "../generated/OrderBook/OrderBook";
+
+export const RAIN_META_DOCUMENT_HEX = "0xff0a89c674ee7874";
 
 export function stringToArrayBuffer(val: string): ArrayBuffer {
   const buff = new ArrayBuffer(val.length / 2);
@@ -224,4 +229,56 @@ export function createOrderClear(txHash: Bytes): OrderClear {
     }
   }
   return new OrderClear("");
+}
+
+export function getOB(obAddress_: Address): OrderBook {
+  let orderBook = OrderBook.load(obAddress_);
+  if (!orderBook) {
+    orderBook = new OrderBook(obAddress_);
+    orderBook.address = obAddress_;
+    orderBook.save();
+  }
+  return orderBook;
+}
+
+export function getRainMetaV1(meta_: Bytes): RainMetaV1 {
+  const metaV1_ID = getKeccak256FromBytes(meta_);
+
+  let metaV1 = RainMetaV1.load(metaV1_ID);
+
+  if (!metaV1) {
+    metaV1 = new RainMetaV1(metaV1_ID);
+    metaV1.metaBytes = meta_;
+    metaV1.save();
+  }
+
+  return metaV1;
+}
+
+export function getKeccak256FromBytes(data_: Bytes): Bytes {
+  return Bytes.fromByteArray(crypto.keccak256(Bytes.fromByteArray(data_)));
+}
+
+export function isHexadecimalString(str: string): boolean {
+  // Check if string is empty
+  if (str.length == 0) {
+    return false;
+  }
+
+  // Check if each character is a valid hexadecimal character
+  for (let i = 0; i < str.length; i++) {
+    let charCode = str.charCodeAt(i);
+    if (
+      !(
+        (charCode >= 48 && charCode <= 57) || // 0-9
+        (charCode >= 65 && charCode <= 70) || // A-F
+        (charCode >= 97 && charCode <= 102)
+      )
+    ) {
+      // a-f
+      return false;
+    }
+  }
+
+  return true;
 }

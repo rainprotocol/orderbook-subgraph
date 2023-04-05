@@ -37,7 +37,11 @@ import {
   WithdrawConfigStruct,
   WithdrawEvent,
 } from "../typechain/contracts/orderbook/OrderBook";
-import { getEventArgs, waitForSubgraphToBeSynced } from "./utils";
+import {
+  MAGIC_NUMBERS,
+  getEventArgs,
+  waitForSubgraphToBeSynced,
+} from "./utils";
 
 describe("Account entity", () => {
   let tokenA: ReserveToken18;
@@ -128,7 +132,7 @@ describe("Account entity", () => {
     const data = response.data.account;
 
     expect(data.orders).to.deep.include({
-      id: orderHash.toString(),
+      id: orderHash.toHexString(),
     });
   });
 
@@ -295,6 +299,7 @@ describe("Account entity", () => {
     // Order_A
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
 
+    // TODO: This is a WRONG encoding meta (FIX: @naneez)
     const aliceOrder = encodeMeta("Order_A");
 
     const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
@@ -325,6 +330,7 @@ describe("Account entity", () => {
     // Order_B
     const ratio_B = fixedPointDiv(ONE, ratio_A);
 
+    // TODO: This is a WRONG encoding meta (FIX: @naneez)
     const bobOrder = encodeMeta("Order_B");
 
     const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
@@ -492,6 +498,7 @@ describe("Account entity", () => {
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
 
+    // TODO: This is a WRONG encoding meta (FIX: @naneez)
     const aliceOrder = encodeMeta("Order_A");
 
     // ASK ORDER
