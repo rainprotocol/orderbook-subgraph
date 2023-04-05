@@ -37,7 +37,7 @@ import {
 import { getEventArgs, waitForSubgraphToBeSynced } from "./utils";
 import { DepositConfigStruct } from "../typechain/contracts/orderbook/IOrderBookV1";
 
-describe.only("TokenVault entity", () => {
+describe("TokenVault entity", () => {
   let tokenA: ReserveToken18;
   let tokenB: ReserveToken18;
 

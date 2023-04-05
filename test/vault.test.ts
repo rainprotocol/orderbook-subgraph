@@ -243,6 +243,11 @@ describe("Vault entity", () => {
     const tokenVault_A_ID = `${depositAliceConfig_A.vaultId.toString()}-${alice.address.toLowerCase()}-${tokenA.address.toLowerCase()}`;
     const tokenVault_B_ID = `${depositAliceConfig_B.vaultId.toString()}-${alice.address.toLowerCase()}-${tokenB.address.toLowerCase()}`;
 
+    // The tx.hash + N deposit made on that transaction.
+    // In this case, each transaction only made one deposit, so is `tx.hash()-0`
+    const depositA_ID = `${txDepositOrderAlice_A.hash.toLowerCase()}-0`;
+    const depositB_ID = `${txDepositOrderAlice_B.hash.toLowerCase()}-0`;
+
     const query = `{
         vault (id: "${vault_ID}") {
           owner {
@@ -269,12 +274,11 @@ describe("Vault entity", () => {
       id: tokenVault_B_ID,
     });
 
-    // TODO: Should change the ID to other diff than Tx.hash(). @naneez @vishal
     expect(data.deposits).to.deep.include({
-      id: txDepositOrderAlice_A.hash.toLowerCase(),
+      id: depositA_ID,
     });
     expect(data.deposits).to.deep.include({
-      id: txDepositOrderAlice_B.hash.toLowerCase(),
+      id: depositB_ID,
     });
   });
 
@@ -372,6 +376,10 @@ describe("Vault entity", () => {
     // Subgraph check
     const vault_input_ID = `${aliceInputVault.toString()}-${alice.address.toLowerCase()}`;
 
+    // The tx.hash + N deposit made on that transaction.
+    // In this case, the transaction only made one deposit, so is `tx.hash()-0`
+    const deposit_ID = `${txDepositOrderAlice.hash.toLowerCase()}-0`;
+
     const query = `{
       vault (id: "${vault_input_ID}") {
         deposits {
@@ -384,13 +392,12 @@ describe("Vault entity", () => {
 
     const data = response.data.vault;
 
-    // TODO: Should change the ID to other diff than Tx.hash(). @naneez @vishal
     expect(data.deposits).to.deep.include({
-      id: txDepositOrderAlice.hash.toLowerCase(),
+      id: deposit_ID,
     });
   });
 
-  it("should update the Vault after withdrawals from vaults", async function () {
+  it("should update the Vault after withdrawal from vault", async function () {
     const [, alice] = signers;
 
     const vaultId = ethers.BigNumber.from(1);
@@ -463,6 +470,10 @@ describe("Vault entity", () => {
     // Subgraph check
     const vault_input_ID = `${depositConfig.vaultId.toString()}-${alice.address.toLowerCase()}`;
 
+    // The tx.hash + N withdraw made on that transaction.
+    // In this case, the transaction only made one withdraw, so is `tx.hash()-0`
+    const withdraw_ID = `${txWithdraw.hash.toLowerCase()}-0`;
+
     const query = `{
      vault (id: "${vault_input_ID}") {
       withdraws {
@@ -475,9 +486,8 @@ describe("Vault entity", () => {
 
     const data = response.data.vault;
 
-    // TODO: Should change the ID to other diff than Tx.hash(). @naneez @vishal
     expect(data.withdraws).to.deep.include({
-      id: txWithdraw.hash.toLowerCase(),
+      id: withdraw_ID,
     });
   });
 

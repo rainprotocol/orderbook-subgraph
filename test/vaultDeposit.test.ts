@@ -101,7 +101,7 @@ describe("VaultDeposit entity", () => {
     const data = response.data.vaultDeposit;
 
     assert.equal(data.amount, depositConfig.amount.toString());
-    assert.equal(data.vaultId, depositConfig.token.toLowerCase());
+    assert.equal(data.vaultId, depositConfig.vaultId.toString());
     assert.equal(data.sender.id, depositSender.toLowerCase());
     assert.equal(data.token.id, tokenA.address.toLowerCase());
     assert.equal(data.vault.id, vault_ID);

@@ -140,7 +140,7 @@ describe("VaultWithdraw entity", () => {
 
     const data = response.data.vaultWithdraw;
 
-    assert.equal(data.vaultId, withdrawConfig.token.toLowerCase());
+    assert.equal(data.vaultId, withdrawConfig.vaultId.toString());
     assert.equal(data.requestedAmount, withdrawConfig.amount.toString());
     assert.equal(data.amount, withdrawnAmount.toString());
     assert.equal(data.sender.id, withdrawSender.toLowerCase());
@@ -263,7 +263,7 @@ describe("VaultWithdraw entity", () => {
 
       const data = response.data.vaultWithdraw;
 
-      assert.equal(data.vaultId, withdrawConfig.token.toLowerCase());
+      assert.equal(data.vaultId, withdrawConfig.vaultId.toString());
       assert.equal(data.requestedAmount, withdrawConfig.amount.toString());
       assert.equal(data.amount, withdrawnAmount.toString());
       assert.equal(data.sender.id, withdrawSender.toLowerCase());
