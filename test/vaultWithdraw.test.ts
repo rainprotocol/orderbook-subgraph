@@ -104,7 +104,7 @@ describe("VaultWithdraw entity", () => {
     );
 
     // Subgraph check
-    await waitForSubgraphToBeSynced();
+    await waitForSubgraphToBeSynced(500);
 
     // VaultWithdraw ID: `tx.hash-{N}` where n is the N withdraw with the same tx.hash;
     // In this case, the tx only made one withdraw, so the N is 0
@@ -218,7 +218,7 @@ describe("VaultWithdraw entity", () => {
     )) as Array<WithdrawEvent["args"]>;
 
     // Subgraph check
-    await waitForSubgraphToBeSynced();
+    await waitForSubgraphToBeSynced(500);
 
     //
     for (let i = 0; i < withdrawEvents.length; i++) {

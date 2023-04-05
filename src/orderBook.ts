@@ -5,6 +5,8 @@ import {
   Order,
   OrderClearStateChange,
   ClearOrderConfig,
+  TokenVault,
+  OrderClear,
 } from "../generated/schema";
 import {
   AddOrder,
@@ -29,6 +31,7 @@ import {
   JSONValueKind,
   TypedMap,
   json,
+  log,
 } from "@graphprotocol/graph-ts";
 
 import {
@@ -129,137 +132,215 @@ export function handleAddOrder(event: AddOrder): void {
 
 export function handleAfterClear(event: AfterClear): void {
   let config = ClearOrderConfig.load("1");
+  const clearStateChange = event.params.clearStateChange;
+
+  // Amounts
+  const aliceInput = clearStateChange.aliceInput;
+  const aliceOutput = clearStateChange.aliceOutput;
+  const bobInput = clearStateChange.bobInput;
+  const bobOutput = clearStateChange.bobOutput;
+
+  // Bounty amounts
+  const bountyAmountA = aliceOutput.minus(bobInput);
+  const bountyAmountB = bobOutput.minus(aliceInput);
 
   if (config) {
     let orderClearStateChange = new OrderClearStateChange(config.orderClearId);
     orderClearStateChange.orderClear = config.orderClearId;
-    orderClearStateChange.aInput = event.params.clearStateChange.aliceInput;
-    orderClearStateChange.aOutput = event.params.clearStateChange.aliceOutput;
-    orderClearStateChange.bInput = event.params.clearStateChange.bobInput;
-    orderClearStateChange.bOutput = event.params.clearStateChange.bobOutput;
+    orderClearStateChange.aInput = aliceInput;
+    orderClearStateChange.aOutput = aliceOutput;
+    orderClearStateChange.bInput = bobInput;
+    orderClearStateChange.bOutput = bobOutput;
     orderClearStateChange.save();
 
     let bounty = Bounty.load(config.orderClearId);
     if (bounty) {
-      bounty.bountyAmountA = event.params.clearStateChange.aliceOutput.minus(
-        event.params.clearStateChange.bobInput
-      );
-      bounty.bountyAmountB = event.params.clearStateChange.bobOutput.minus(
-        event.params.clearStateChange.aliceInput
-      );
+      bounty.bountyAmountA = bountyAmountA;
+      bounty.bountyAmountB = bountyAmountB;
       bounty.save();
+    }
+
+    if (bountyAmountA.gt(BigInt.zero())) {
+      const tokenVaultBounty_A = TokenVault.load(config.tokenVaultBountyAlice);
+
+      if (tokenVaultBounty_A) {
+        tokenVaultBounty_A.balance =
+          tokenVaultBounty_A.balance.plus(bountyAmountA);
+
+        tokenVaultBounty_A.save();
+      }
+    }
+
+    if (bountyAmountB.gt(BigInt.zero())) {
+      const tokenVaultBounty_B = TokenVault.load(config.tokenVaultBountyBob);
+
+      if (tokenVaultBounty_B) {
+        tokenVaultBounty_B.balance =
+          tokenVaultBounty_B.balance.plus(bountyAmountB);
+
+        tokenVaultBounty_B.save();
+      }
+    }
+
+    // TokenVaults IDs to update balance
+    const aliceTokenVaultInput_ID = config.aliceTokenVaultInput;
+    const aliceTokenVaultOutput_ID = config.aliceTokenVaultOutput;
+    const bobTokenVaultInput_ID = config.bobTokenVaultInput;
+    const bobTokenVaultOutput_ID = config.bobTokenVaultOutput;
+
+    // Updating alice input/output balance
+    const aliceTokenVaultInput = TokenVault.load(aliceTokenVaultInput_ID);
+    if (aliceTokenVaultInput) {
+      aliceTokenVaultInput.balance =
+        aliceTokenVaultInput.balance.plus(aliceInput);
+      aliceTokenVaultInput.save();
+    }
+
+    const aliceTokenVaultOutput = TokenVault.load(aliceTokenVaultOutput_ID);
+    if (aliceTokenVaultOutput) {
+      aliceTokenVaultOutput.balance =
+        aliceTokenVaultOutput.balance.minus(aliceOutput);
+      aliceTokenVaultOutput.save();
+    }
+
+    // Updating bob input/output balance
+    const bobTokenVaultInput = TokenVault.load(bobTokenVaultInput_ID);
+    if (bobTokenVaultInput) {
+      bobTokenVaultInput.balance = bobTokenVaultInput.balance.plus(bobInput);
+      bobTokenVaultInput.save();
+    }
+
+    const bobTokenVaultOutput = TokenVault.load(bobTokenVaultOutput_ID);
+    if (bobTokenVaultOutput) {
+      bobTokenVaultOutput.balance =
+        bobTokenVaultOutput.balance.minus(bobOutput);
+      bobTokenVaultOutput.save();
     }
   }
 }
 
 export function handleClear(event: Clear): void {
+  const alice = event.params.alice;
+  const bob = event.params.bob;
+  const clearConfig = event.params.clearConfig;
+  const sender = event.params.sender;
+
   let orderClear = createOrderClear(event.transaction.hash.toHex());
-  orderClear.sender = createAccount(event.params.sender).id;
-  orderClear.clearer = createAccount(event.params.sender).id;
-  orderClear.orderA = createOrder(event.params.alice).id;
-  orderClear.orderB = createOrder(
-    changetype<ClearAliceStruct>(event.params.bob)
-  ).id;
+  orderClear.sender = createAccount(sender).id;
+  orderClear.clearer = createAccount(sender).id;
+  orderClear.orderA = createOrder(alice).id;
+  orderClear.orderB = createOrder(changetype<ClearAliceStruct>(bob)).id;
 
   orderClear.owners = [
-    createAccount(event.params.alice.owner).id,
-    createAccount(event.params.bob.owner).id,
+    createAccount(alice.owner).id,
+    createAccount(bob.owner).id,
   ];
-  orderClear.aInputIOIndex = event.params.clearConfig.aliceInputIOIndex;
-  orderClear.aOutputIOIndex = event.params.clearConfig.aliceOutputIOIndex;
-  orderClear.bInputIOIndex = event.params.clearConfig.bobInputIOIndex;
-  orderClear.bOutputIOIndex = event.params.clearConfig.bobOutputIOIndex;
+  orderClear.aInputIOIndex = clearConfig.aliceInputIOIndex;
+  orderClear.aOutputIOIndex = clearConfig.aliceOutputIOIndex;
+  orderClear.bInputIOIndex = clearConfig.bobInputIOIndex;
+  orderClear.bOutputIOIndex = clearConfig.bobOutputIOIndex;
   orderClear.save();
 
   let bounty = new Bounty(orderClear.id);
-  bounty.clearer = createAccount(event.params.sender).id;
+  bounty.clearer = createAccount(sender).id;
   bounty.orderClear = orderClear.id;
   bounty.bountyVaultA = createVault(
-    event.params.clearConfig.aliceBountyVaultId.toString(),
-    event.params.sender
+    clearConfig.aliceBountyVaultId.toString(),
+    sender
   ).id;
   bounty.bountyVaultB = createVault(
-    event.params.clearConfig.bobBountyVaultId.toString(),
-    event.params.sender
+    clearConfig.bobBountyVaultId.toString(),
+    sender
   ).id;
 
   bounty.bountyTokenA = createToken(
-    event.params.alice.validOutputs[
-      event.params.clearConfig.aliceOutputIOIndex.toI32()
-    ].token
+    alice.validOutputs[clearConfig.aliceOutputIOIndex.toI32()].token
   ).id;
   bounty.bountyTokenB = createToken(
-    event.params.bob.validOutputs[
-      event.params.clearConfig.bobOutputIOIndex.toI32()
-    ].token
+    bob.validOutputs[clearConfig.bobOutputIOIndex.toI32()].token
   ).id;
   bounty.save();
 
+  // IO Index values used to clear (for alice and bob)
+  const aliceInputIOIndex = clearConfig.aliceInputIOIndex.toI32();
+  const aliceOutputIOIndex = clearConfig.aliceOutputIOIndex.toI32();
+  const bobInputIOIndex = clearConfig.bobInputIOIndex.toI32();
+  const bobOutputIOIndex = clearConfig.bobOutputIOIndex.toI32();
+
+  // Valid inputs/outpus based on the Index used (for alice and bob)
+  const aliceInputValues = alice.validInputs[aliceInputIOIndex];
+  const aliceOutputValues = alice.validOutputs[aliceOutputIOIndex];
+  const bobInputValues = bob.validInputs[bobInputIOIndex];
+  const bobOutputValues = bob.validOutputs[bobOutputIOIndex];
+
+  // Token input/output based on the Index used (for alice and bob)
+  const aliceTokenInput = aliceInputValues.token;
+  const aliceTokenOutput = aliceOutputValues.token;
+  const bobTokenInput = bobInputValues.token;
+  const bobTokenOutput = bobOutputValues.token;
+
+  // Vault IDs input/output based on the Index used (for alice and bob)
+  const aliceVaultInput = aliceInputValues.vaultId;
+  const aliceVaultOutput = aliceOutputValues.vaultId;
+  const bobVaultInput = bobInputValues.vaultId;
+  const bobVaultOutput = bobOutputValues.vaultId;
+
+  // Token Vault IDs to use
+  const aliceTokenVaultInput = `${aliceVaultInput.toString()}-${alice.owner.toHex()}-${aliceTokenInput.toHex()}`;
+  const aliceTokenVaultOutput = `${aliceVaultOutput.toString()}-${alice.owner.toHex()}-${aliceTokenOutput.toHex()}`;
+  const bobTokenVaultInput = `${bobVaultInput.toString()}-${bob.owner.toHex()}-${bobTokenInput.toHex()}`;
+  const bobTokenVaultOutput = `${bobVaultOutput.toString()}-${bob.owner.toHex()}-${bobTokenOutput.toHex()}`;
+
+  // Only should link the TokenVault to OrderClear where they are being clear
+  // using a the given vault and token.
+  // Only will link to four (4) token vaults this clear. Does not care if the
+  // orders have more valid inputs/outputs.
+  const tokenVaultArr = [
+    aliceTokenVaultInput,
+    aliceTokenVaultOutput,
+    bobTokenVaultInput,
+    bobTokenVaultOutput,
+  ];
+
+  // The token vault should exist on this point since it was created when
+  // the order was added.
+  for (let i = 0; i < 4; i++) {
+    const tokenVault_ID = tokenVaultArr[i];
+    let tokenVault = TokenVault.load(tokenVault_ID);
+    if (tokenVault) {
+      let orderClears = tokenVault.orderClears;
+      if (orderClears) orderClears.push(orderClear.id);
+      tokenVault.orderClears = orderClears;
+      tokenVault.save();
+    }
+  }
+
+  // Clearer/Bounty address token vaults
+  let tokenVaultBountyAlice = createTokenVault(
+    event.params.clearConfig.aliceBountyVaultId.toString(),
+    event.params.sender,
+    event.params.alice.validOutputs[
+      event.params.clearConfig.aliceOutputIOIndex.toI32()
+    ].token
+  );
+
+  let tokenVaultBountyBob = createTokenVault(
+    event.params.clearConfig.bobBountyVaultId.toString(),
+    event.params.sender,
+    event.params.bob.validOutputs[
+      event.params.clearConfig.bobOutputIOIndex.toI32()
+    ].token
+  );
+
   let config = new ClearOrderConfig("1");
   config.orderClearId = orderClear.id;
+  config.tokenVaultBountyAlice = tokenVaultBountyAlice.id;
+  config.tokenVaultBountyBob = tokenVaultBountyBob.id;
+  config.aliceTokenVaultInput = aliceTokenVaultInput;
+  config.aliceTokenVaultOutput = aliceTokenVaultOutput;
+  config.bobTokenVaultInput = bobTokenVaultInput;
+  config.bobTokenVaultOutput = bobTokenVaultOutput;
   config.save();
-
-  let alice = event.params.alice;
-  for (let i = 0; i < alice.validInputs.length; i++) {
-    let tokenVault = createTokenVault(
-      alice.validInputs[i].vaultId.toString(),
-      alice.owner,
-      alice.validInputs[i].token
-    );
-
-    if (tokenVault) {
-      let orderClears = tokenVault.orderClears;
-      if (orderClears) orderClears.push(orderClear.id);
-      tokenVault.orderClears = orderClears;
-      tokenVault.save();
-    }
-  }
-
-  for (let i = 0; i < alice.validOutputs.length; i++) {
-    let tokenVault = createTokenVault(
-      alice.validOutputs[i].vaultId.toString(),
-      alice.owner,
-      alice.validOutputs[i].token
-    );
-
-    if (tokenVault) {
-      let orderClears = tokenVault.orderClears;
-      if (orderClears) orderClears.push(orderClear.id);
-      tokenVault.orderClears = orderClears;
-      tokenVault.save();
-    }
-  }
-
-  let bob = event.params.bob;
-  for (let i = 0; i < bob.validInputs.length; i++) {
-    let tokenVault = createTokenVault(
-      bob.validInputs[i].vaultId.toString(),
-      bob.owner,
-      bob.validInputs[i].token
-    );
-
-    if (tokenVault) {
-      let orderClears = tokenVault.orderClears;
-      if (orderClears) orderClears.push(orderClear.id);
-      tokenVault.orderClears = orderClears;
-      tokenVault.save();
-    }
-  }
-
-  for (let i = 0; i < bob.validOutputs.length; i++) {
-    let tokenVault = createTokenVault(
-      bob.validOutputs[i].vaultId.toString(),
-      bob.owner,
-      bob.validOutputs[i].token
-    );
-
-    if (tokenVault) {
-      let orderClears = tokenVault.orderClears;
-      if (orderClears) orderClears.push(orderClear.id);
-      tokenVault.orderClears = orderClears;
-      tokenVault.save();
-    }
-  }
 }
 export function handleContext(event: Context): void {}
 

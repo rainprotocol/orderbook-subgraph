@@ -111,7 +111,7 @@ describe("TokenVault entity", () => {
     compareStructs(order_A, orderConfig_A);
 
     // Subgraph check
-    await waitForSubgraphToBeSynced();
+    await waitForSubgraphToBeSynced(500);
 
     // TokenVault: #{vaultId}-{owner}-{token}
     const tokenVault_Input_ID = `${aliceInputVault.toString()}-${alice.address.toLowerCase()}-${tokenA.address.toLowerCase()}`;
@@ -263,7 +263,7 @@ describe("TokenVault entity", () => {
     compareStructs(order_B, orderConfig);
 
     // Subgraph check
-    await waitForSubgraphToBeSynced();
+    await waitForSubgraphToBeSynced(500);
 
     // TokenVault: #{vaultId}-{owner}-{token}
     const tokenVault_Input_ID = `${aliceInputVault.toString()}-${alice.address.toLowerCase()}-${tokenA.address.toLowerCase()}`;
@@ -374,7 +374,7 @@ describe("TokenVault entity", () => {
 
     // Checking SG entity after adding order to confirm status
     // Subgraph check
-    await waitForSubgraphToBeSynced();
+    await waitForSubgraphToBeSynced(500);
 
     // Alice Data IDs: (across the test)
     // - Token Vault:
@@ -467,7 +467,7 @@ describe("TokenVault entity", () => {
 
     // Check the TokenVaults after deposits
     // Subgraph check
-    await waitForSubgraphToBeSynced();
+    await waitForSubgraphToBeSynced(500);
 
     const query_1 = `{
       tokenVaultInputAlice: tokenVault (id: "${tokenVault_Input_Alice_ID}") {
@@ -555,7 +555,7 @@ describe("TokenVault entity", () => {
     aliceVaultTracker = aliceVaultTracker.add(depositConfig.amount);
 
     // Subgraph check
-    await waitForSubgraphToBeSynced();
+    await waitForSubgraphToBeSynced(500);
 
     const query_0 = `{
       tokenVault (id: "${tokenVault_Input_Alice_ID}") {
@@ -611,7 +611,7 @@ describe("TokenVault entity", () => {
     aliceVaultTracker = aliceVaultTracker.sub(withdrawConfig.amount);
 
     // Subgraph check
-    await waitForSubgraphToBeSynced();
+    await waitForSubgraphToBeSynced(500);
 
     const query_1 = `{
       tokenVault (id: "${tokenVault_Input_Alice_ID}") {
@@ -708,7 +708,7 @@ describe("TokenVault entity", () => {
 
     // Checking SG entity after adding order to confirm status
     // Subgraph check
-    await waitForSubgraphToBeSynced();
+    await waitForSubgraphToBeSynced(500);
 
     // Alice Data IDs: (across the test)
     // - Token Vault:
@@ -821,7 +821,7 @@ describe("TokenVault entity", () => {
 
     // Check the TokenVaults after deposits
     // Subgraph check
-    await waitForSubgraphToBeSynced();
+    await waitForSubgraphToBeSynced(500);
 
     const query_1 = `{
       tokenVaultInputAlice: tokenVault (id: "${tokenVault_Input_Alice_ID}") {
@@ -983,7 +983,7 @@ describe("TokenVault entity", () => {
 
     // Check the TokenVaults after Clearing
     // Subgraph check
-    await waitForSubgraphToBeSynced();
+    await waitForSubgraphToBeSynced(500);
 
     const query_2 = `{
       tokenVaultInputAlice: tokenVault (id: "${tokenVault_Input_Alice_ID}") {
@@ -1007,25 +1007,21 @@ describe("TokenVault entity", () => {
     // Alice check
     assert.equal(
       data_2.tokenVaultInputAlice.balance,
-      aliceInputVaultTracker.toString(),
-      "Wrong: Input TokenVault was updated"
+      aliceInputVaultTracker.toString()
     );
     assert.equal(
       data_2.tokenVaultOutputAlice.balance,
-      aliceOutputVaultTracker.toString(),
-      "Wrong: Output TokenVault was not updated"
+      aliceOutputVaultTracker.toString()
     );
 
     // Bob check
     assert.equal(
       data_2.tokenVaultInputBob.balance,
-      bobInputVaultTracker.toString(),
-      "Wrong: Input TokenVault was updated"
+      bobInputVaultTracker.toString()
     );
     assert.equal(
       data_2.tokenVaultOutputBob.balance,
-      bobOutputVaultTracker.toString(),
-      "Wrong: Output TokenVault was not updated"
+      bobOutputVaultTracker.toString()
     );
   });
 
@@ -1210,7 +1206,7 @@ describe("TokenVault entity", () => {
     compareStructs(clearStateChange, expectedClearStateChange);
 
     // Subgraph check
-    await waitForSubgraphToBeSynced();
+    await waitForSubgraphToBeSynced(500);
 
     // TokenVault: #{vaultId}-{owner}-{token}
     const tokenVault_Input_ID = `${aliceInputVault.toString()}-${alice.address.toLowerCase()}-${tokenA.address.toLowerCase()}`;
@@ -1426,7 +1422,7 @@ describe("TokenVault entity", () => {
     compareStructs(clearStateChange, expectedClearStateChange);
 
     // Subgraph check
-    await waitForSubgraphToBeSynced();
+    await waitForSubgraphToBeSynced(500);
 
     // Vault ID where the bounty will be move
     const { aliceBountyVaultId, bobBountyVaultId } = clearBountyConfig;
@@ -1435,24 +1431,62 @@ describe("TokenVault entity", () => {
     const tokenVault_A_ID = `${aliceBountyVaultId.toString()}-${bountyBot.address.toLowerCase()}-${tokenB.address.toLowerCase()}`;
     const tokenVault_B_ID = `${bobBountyVaultId.toString()}-${bountyBot.address.toLowerCase()}-${tokenA.address.toLowerCase()}`;
 
+    const vault_A_ID = `${aliceBountyVaultId.toString()}-${bountyBot.address.toLowerCase()}`;
+    const vault_B_ID = `${bobBountyVaultId.toString()}-${bountyBot.address.toLowerCase()}`;
+
+    const vaultBalance_A = await orderBook.vaultBalance(
+      bountyBot.address,
+      tokenB.address,
+      aliceBountyVaultId
+    );
+    const vaultBalance_B = await orderBook.vaultBalance(
+      bountyBot.address,
+      tokenA.address,
+      bobBountyVaultId
+    );
+
     const query = `{
-      tokenVaults {
-        id
+      tokenVault_A: tokenVault (id: "${tokenVault_A_ID}") {
+        balance
+        owner {
+          id
+        }
+        vault {
+          id
+        }
+        token {
+          id
+        }
+      }
+      tokenVault_B: tokenVault (id: "${tokenVault_B_ID}") {
+        balance
+        owner {
+          id
+        }
+        vault {
+          id
+        }
+        token {
+          id
+        }
       }
     }`;
 
     const response = (await subgraph({ query })) as FetchResult;
-    console.log(JSON.stringify(response, null, 2));
-    console.log(tokenVault_A_ID);
-    console.log(tokenVault_B_ID);
 
-    const data = response.data.tokenVaults;
+    const data_A = response.data.tokenVault_A;
+    const data_B = response.data.tokenVault_B;
 
-    expect(data).to.deep.include({
-      id: tokenVault_A_ID,
-    });
-    expect(data).to.deep.include({
-      id: tokenVault_B_ID,
-    });
+    // TokenVault A
+    assert.equal(data_A.balance, vaultBalance_A.toString());
+    assert.equal(data_A.owner.id, bountyBot.address.toLowerCase());
+    assert.equal(data_A.vault.id, vault_A_ID);
+    assert.equal(data_A.token.id, tokenB.address.toLowerCase());
+
+    // TokenVault B
+    assert.equal(data_B.balance, vaultBalance_B.toString());
+    assert.equal(data_B.owner.id, bountyBot.address.toLowerCase());
+    assert.equal(data_B.vault.id, vault_B_ID);
+    assert.equal(data_B.token.id, tokenA.address.toLowerCase());
   });
 });

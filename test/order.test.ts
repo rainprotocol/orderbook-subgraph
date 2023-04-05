@@ -140,7 +140,7 @@ describe("Order entity", () => {
     assert(sender_A === alice.address, "wrong sender");
     compareStructs(order_A, orderConfig_A);
 
-    await waitForSubgraphToBeSynced();
+    await waitForSubgraphToBeSynced(500);
 
     // Subgraph check
     // Get Interpreters from ExpressionDeployer address
@@ -324,7 +324,7 @@ describe("Order entity", () => {
     assert(sender_B === bob.address, "wrong sender");
     compareStructs(order_B, orderConfig_B);
 
-    await waitForSubgraphToBeSynced();
+    await waitForSubgraphToBeSynced(500);
     // SG check
     const query = `{
       orders {
@@ -416,7 +416,7 @@ describe("Order entity", () => {
       orderBook
     )) as RemoveOrderEvent["args"];
 
-    await waitForSubgraphToBeSynced();
+    await waitForSubgraphToBeSynced(500);
     assert(deadSender_A === alice.address, "wrong sender");
     compareStructs(DeadOrder_A, OrderConfig_A);
 

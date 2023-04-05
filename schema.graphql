@@ -280,4 +280,10 @@ type OrderClearStateChange @entity {
 type ClearOrderConfig @entity {
   id: ID!
   orderClearId: OrderClear!
+  tokenVaultBountyAlice: TokenVault!
+  tokenVaultBountyBob: TokenVault!
+  aliceTokenVaultInput: String!
+  aliceTokenVaultOutput: String!
+  bobTokenVaultInput: String!
+  bobTokenVaultOutput: String!
 }
