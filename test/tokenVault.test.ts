@@ -940,6 +940,47 @@ describe("TokenVault entity", () => {
       clearStateChange.bobOutput
     );
 
+    // Check the final tracker balance against the balance that the OB hold.
+    const vaultBalAliceInput = await orderBook.vaultBalance(
+      alice.address,
+      tokenA.address,
+      aliceInputVault
+    );
+    const vaultBalAliceOutput = await orderBook.vaultBalance(
+      alice.address,
+      tokenB.address,
+      aliceOutputVault
+    );
+
+    const vaultBalBobInput = await orderBook.vaultBalance(
+      bob.address,
+      tokenB.address,
+      bobInputVault
+    );
+    const vaultBalBobOutput = await orderBook.vaultBalance(
+      bob.address,
+      tokenA.address,
+      bobOutputVault
+    );
+
+    assert(
+      vaultBalAliceInput.eq(aliceInputVaultTracker),
+      "Wrong: Vault Balance Alice Input Tracker"
+    );
+    assert(
+      vaultBalAliceOutput.eq(aliceOutputVaultTracker),
+      "Wrong: Vault Balance Alice Output Tracker"
+    );
+
+    assert(
+      vaultBalBobInput.eq(bobInputVaultTracker),
+      "Wrong: Vault Balance Bob Input Tracker"
+    );
+    assert(
+      vaultBalBobOutput.eq(bobOutputVaultTracker),
+      "Wrong: Vault Balance Bob Output Tracker"
+    );
+
     // Check the TokenVaults after Clearing
     // Subgraph check
     await waitForSubgraphToBeSynced();
