@@ -104,6 +104,12 @@ let
     graph codegen
     graph build
   '';
+
+  ci-prepare-subgraph-mumbai = pkgs.writeShellScriptBin "ci-prepare-subgraph-mumbai" ''
+    npx mustache config/mumbai.json subgraph.template.yaml subgraph.yaml
+    graph codegen
+    graph build
+  '';
   
 in
 pkgs.stdenv.mkDerivation {
@@ -122,6 +128,7 @@ pkgs.stdenv.mkDerivation {
   init
   install-submodules
   ci-prepare-subgraph-polygon
+  ci-prepare-subgraph-mumbai
  ];
 
  shellHook = ''
