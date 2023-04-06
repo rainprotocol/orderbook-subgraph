@@ -55,11 +55,17 @@ jobs:
         run: |
           nix-shell --run init
 
-      - name: Prepare subgraph manifest
-        run: nix-shell --run ci-prepare-subgraph-polygon
-
       - name: Graph Authentication
         run: npx graph auth --product hosted-service $THE_GRAPH_API_TOKEN
 
-      - name: Graph Deployments
+      - name: Prepare subgraph manifest for polygon
+        run: nix-shell --run ci-prepare-subgraph-polygon
+
+      - name: Graph Deployments polygon
         run: npx graph deploy --product hosted-service rainprotocol/orderbook-polygon
+
+      - name: Prepare subgraph manifest for mumbai
+        run: nix-shell --run ci-prepare-subgraph-mumbai
+
+      - name: Graph Deployments mumbai
+        run: npx graph deploy --product hosted-service rainprotocol/orderbook-mumbai
