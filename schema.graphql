@@ -67,6 +67,8 @@ type Order implements Event @entity {
   "validOutputs"
   validOutputs: [IO!]
 
+  orderJSONString: String!
+
   "Timestamp when the order was added"
   transaction: Transaction!
   emitter: Account!

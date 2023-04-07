@@ -6,8 +6,6 @@ import {
   Address,
   ethereum,
   crypto,
-  ByteArray,
-  log,
 } from "@graphprotocol/graph-ts";
 import {
   Account,
