@@ -6,7 +6,6 @@ import {
   OrderClearStateChange,
   ClearOrderConfig,
   TokenVault,
-  OrderClear,
 } from "../generated/schema";
 import {
   AddOrder,
@@ -31,7 +30,6 @@ import {
   JSONValueKind,
   TypedMap,
   json,
-  log,
 } from "@graphprotocol/graph-ts";
 
 import {
@@ -53,41 +51,43 @@ import {
   stringToArrayBuffer,
 } from "./utils";
 import { CBORDecoder } from "@rainprotocol/assemblyscript-cbor";
+import { OrderString } from "./orderJsonString";
 
 export function handleAddOrder(event: AddOrder): void {
+  // Order parameter from event
+  const orderParam = event.params.order;
+
   const orderHashHex = getEvenHex(event.params.orderHash.toHex());
 
   let order = new Order(orderHashHex);
   order.transactionHash = event.transaction.hash;
-  order.owner = createAccount(event.params.order.owner).id;
+  order.owner = createAccount(orderParam.owner).id;
   order.expressionDeployer = event.params.expressionDeployer;
-  order.expression = event.params.order.evaluable.expression;
-  order.interpreter = event.params.order.evaluable.interpreter;
-  order.interpreterStore = event.params.order.evaluable.store;
-  order.handleIO = event.params.order.handleIO;
+  order.expression = orderParam.evaluable.expression;
+  order.interpreter = orderParam.evaluable.interpreter;
+  order.interpreterStore = orderParam.evaluable.store;
+  order.handleIO = orderParam.handleIO;
   order.orderActive = true;
 
-  for (let i = 0; i < event.params.order.validInputs.length; i++) {
-    let token = createToken(event.params.order.validInputs[i].token);
+  for (let i = 0; i < orderParam.validInputs.length; i++) {
+    let token = createToken(orderParam.validInputs[i].token);
     let vault = createVault(
-      event.params.order.validInputs[i].vaultId.toString(),
-      event.params.order.owner
+      orderParam.validInputs[i].vaultId.toString(),
+      orderParam.owner
     );
     let input = new IO(
-      `${orderHashHex}-${token.id.toHex()}-${
-        event.params.order.validInputs[i].vaultId
-      }`
+      `${orderHashHex}-${token.id.toHex()}-${orderParam.validInputs[i].vaultId}`
     );
     input.token = token.id;
-    input.decimals = event.params.order.validInputs[i].decimals;
+    input.decimals = orderParam.validInputs[i].decimals;
     input.vault = vault.id;
     input.order = orderHashHex;
     input.save();
 
     let tokenVault = createTokenVault(
-      event.params.order.validInputs[i].vaultId.toString(),
+      orderParam.validInputs[i].vaultId.toString(),
       event.params.sender,
-      event.params.order.validInputs[i].token
+      orderParam.validInputs[i].token
     );
 
     if (tokenVault) {
@@ -98,27 +98,27 @@ export function handleAddOrder(event: AddOrder): void {
     }
   }
 
-  for (let i = 0; i < event.params.order.validOutputs.length; i++) {
-    let token = createToken(event.params.order.validOutputs[i].token);
+  for (let i = 0; i < orderParam.validOutputs.length; i++) {
+    let token = createToken(orderParam.validOutputs[i].token);
     let vault = createVault(
-      event.params.order.validOutputs[i].vaultId.toString(),
-      event.params.order.owner
+      orderParam.validOutputs[i].vaultId.toString(),
+      orderParam.owner
     );
     let output = new IO(
       `${orderHashHex}-${token.id.toHex()}-${
-        event.params.order.validOutputs[i].vaultId
+        orderParam.validOutputs[i].vaultId
       }`
     );
     output.token = token.id;
-    output.decimals = event.params.order.validOutputs[i].decimals;
+    output.decimals = orderParam.validOutputs[i].decimals;
     output.vault = vault.id;
     output.order = orderHashHex;
     output.save();
 
     let tokenVault = createTokenVault(
-      event.params.order.validOutputs[i].vaultId.toString(),
+      orderParam.validOutputs[i].vaultId.toString(),
       event.params.sender,
-      event.params.order.validOutputs[i].token
+      orderParam.validOutputs[i].token
     );
 
     if (tokenVault) {
@@ -130,6 +130,11 @@ export function handleAddOrder(event: AddOrder): void {
   }
 
   order.timestamp = event.block.timestamp;
+
+  // Use the OrderString class to generate a Order JSON string compatible value
+  const orderString = new OrderString(orderParam);
+  order.orderJSONString = orderString.stringify();
+
   order.save();
 }
 

@@ -6,8 +6,6 @@ import {
   Address,
   ethereum,
   crypto,
-  ByteArray,
-  log,
 } from "@graphprotocol/graph-ts";
 import {
   Account,
@@ -24,11 +22,7 @@ import {
   VaultWithdraw,
 } from "../generated/schema";
 import { ReserveToken } from "../generated/OrderBook/ReserveToken";
-import {
-  ClearAliceStruct,
-  MetaV1,
-  TakeOrderConfigStruct,
-} from "../generated/OrderBook/OrderBook";
+import { ClearAliceStruct } from "../generated/OrderBook/OrderBook";
 
 export const RAIN_META_DOCUMENT_HEX = "0xff0a89c674ee7874";
 

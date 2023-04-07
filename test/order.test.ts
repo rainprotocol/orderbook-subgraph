@@ -436,4 +436,114 @@ describe("Order entity", () => {
 
     assert.equal(data.orderActive, false);
   });
+
+  it("should be able to use orderJSONString field to reference the Order directly (remove order)", async () => {
+    const [, alice] = signers;
+
+    const aliceInputVault = ethers.BigNumber.from(randomUint256());
+    const aliceOutputVault = ethers.BigNumber.from(randomUint256());
+
+    const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
+    const constants_A = [max_uint256, ratio_A];
+    const aOpMax = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const aRatio = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+    // prettier-ignore
+    const source_A = concat([
+      aOpMax,
+      aRatio,
+    ]);
+    // TODO: This is a WRONG encoding meta (FIX: @naneez)
+    const aliceOrder = encodeMeta("Order_A");
+
+    const EvaluableConfig_A = await generateEvaluableConfig(
+      [source_A, []],
+      constants_A
+    );
+
+    const OrderConfig_A: OrderConfigStruct = {
+      validInputs: [
+        { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
+      ],
+      validOutputs: [
+        { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
+      ],
+      evaluableConfig: EvaluableConfig_A,
+      meta: aliceOrder,
+    };
+
+    const txOrder_A = await orderBook.connect(alice).addOrder(OrderConfig_A);
+
+    const {
+      sender: liveSender_A,
+      order: LiveOrder_A,
+      orderHash: addOrderHash,
+    } = (await getEventArgs(
+      txOrder_A,
+      "AddOrder",
+      orderBook
+    )) as AddOrderEvent["args"];
+
+    assert(liveSender_A === alice.address, "wrong sender");
+    compareStructs(LiveOrder_A, OrderConfig_A);
+
+    // Wait for sg
+    await waitForSubgraphToBeSynced();
+
+    const query_0 = `{
+      order (id: "${addOrderHash.toHexString().toLowerCase()}") {
+        orderActive
+        orderJSONString
+      }
+    }`;
+
+    const response_0 = (await subgraph({ query: query_0 })) as FetchResult;
+
+    const data_0 = response_0.data.order;
+
+    assert.equal(data_0.orderActive, true);
+
+    const orderFromSg = JSON.parse(data_0.orderJSONString);
+
+    // REMOVE Order_A
+
+    const txRemoveOrder = await orderBook
+      .connect(alice)
+      .removeOrder(orderFromSg);
+
+    const {
+      sender: deadSender_A,
+      order: DeadOrder_A,
+      orderHash: removeOrderHash,
+    } = (await getEventArgs(
+      txRemoveOrder,
+      "RemoveOrder",
+      orderBook
+    )) as RemoveOrderEvent["args"];
+
+    await waitForSubgraphToBeSynced();
+    assert(deadSender_A === alice.address, "wrong sender");
+    compareStructs(DeadOrder_A, OrderConfig_A);
+
+    // SG checks
+
+    assert(addOrderHash.eq(removeOrderHash), "wrong order removed");
+
+    const query_1 = `{
+      order (id: "${addOrderHash.toHexString().toLowerCase()}") {
+        orderActive
+      }
+    }`;
+
+    const response_1 = (await subgraph({ query: query_1 })) as FetchResult;
+
+    const data_1 = response_1.data.order;
+
+    assert.equal(data_1.orderActive, false);
+  });
 });

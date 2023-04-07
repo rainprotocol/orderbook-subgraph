@@ -69,6 +69,8 @@ type Order @entity {
   "validOutputs"
   validOutputs: [IO!] @derivedFrom(field: "order")
 
+  orderJSONString: String!
+
   "Timestamp when the order was added"
   timestamp: BigInt!
 }
