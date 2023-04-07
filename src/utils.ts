@@ -19,16 +19,13 @@ import {
   RainMetaV1,
   TakeOrderEntity,
   TokenVault,
+  Transaction,
   Vault,
   VaultDeposit,
   VaultWithdraw,
 } from "../generated/schema";
 import { ReserveToken } from "../generated/OrderBook/ReserveToken";
-import {
-  ClearAliceStruct,
-  MetaV1,
-  TakeOrderConfigStruct,
-} from "../generated/OrderBook/OrderBook";
+import { ClearAliceStruct } from "../generated/OrderBook/OrderBook";
 
 export const RAIN_META_DOCUMENT_HEX = "0xff0a89c674ee7874";
 
@@ -292,4 +289,18 @@ export function isHexadecimalString(str: string): boolean {
   }
 
   return true;
+}
+
+export function createTransaction(
+  hash: string,
+  block: ethereum.Block
+): Transaction {
+  let transaction = Transaction.load(hash);
+  if (!transaction) {
+    transaction = new Transaction(hash);
+    transaction.blockNumber = block.number;
+    transaction.timestamp = block.timestamp;
+    transaction.save();
+  }
+  return transaction;
 }
