@@ -17,6 +17,7 @@ import {
   RainMetaV1,
   TakeOrderEntity,
   TokenVault,
+  Transaction,
   Vault,
   VaultDeposit,
   VaultWithdraw,
@@ -286,4 +287,18 @@ export function isHexadecimalString(str: string): boolean {
   }
 
   return true;
+}
+
+export function createTransaction(
+  hash: string,
+  block: ethereum.Block
+): Transaction {
+  let transaction = Transaction.load(hash);
+  if (!transaction) {
+    transaction = new Transaction(hash);
+    transaction.blockNumber = block.number;
+    transaction.timestamp = block.timestamp;
+    transaction.save();
+  }
+  return transaction;
 }

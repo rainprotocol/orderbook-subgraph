@@ -152,7 +152,9 @@ describe("Order entity", () => {
 
     const query = `{
       order (id: "${orderHash.toHexString().toLowerCase()}") {
-        transactionHash
+        transaction{
+          id
+        }
         owner{
           id
         }
@@ -180,7 +182,7 @@ describe("Order entity", () => {
     const data = response.data.order;
 
     assert.equal(
-      data.transactionHash.toLowerCase(),
+      data.transaction.id.toLowerCase(),
       txOrder_A.hash.toLowerCase()
     );
     assert.equal(data.owner.id, sender_A.toLowerCase());
