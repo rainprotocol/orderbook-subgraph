@@ -33,11 +33,9 @@ type MetaContentV1 @entity {
 }
 
 # Created with the first AddOrder event, then updated on the corresponding AddOrder/RemoveOrder events
-type Order @entity {
+type Order implements Event @entity {
   "The hash of the order"
   id: ID! # This value is emitted as Uint256, but you should use the hex string representation (it's a hash)
-  "The hash of the transaction"
-  transactionHash: Bytes!
 
   "The address that added the order"
   owner: Account!
@@ -70,6 +68,8 @@ type Order @entity {
   validOutputs: [IO!] @derivedFrom(field: "order")
 
   "Timestamp when the order was added"
+  transaction: Transaction!
+  emitter: Account!
   timestamp: BigInt!
 }
 
@@ -140,7 +140,7 @@ type TokenVault @entity {
 }
 
 # Created for every Deposit event
-type VaultDeposit @entity {
+type VaultDeposit implements Event @entity {
   id: ID! # use txhash of the event
   "The transaction sender of this deposit"
   sender: Account! # Deposit.sender
@@ -154,10 +154,13 @@ type VaultDeposit @entity {
   amount: BigInt! # Deposit.config.amount
   "The current balance of this token for this Vault"
   tokenVault: TokenVault! # map by {Deposit.config.vaultId}-{Deposit.sender}-{Deposit.config.token}
+  transaction: Transaction!
+  emitter: Account!
+  timestamp: BigInt!
 }
 
 # Created for every Withdraw event
-type VaultWithdraw @entity {
+type VaultWithdraw implements Event @entity {
   id: ID! # use txhash of the event
   "The transaction sender of this withdrawal"
   sender: Account! # Withdrawal.sender
@@ -173,6 +176,9 @@ type VaultWithdraw @entity {
   amount: BigInt! # Withdraw.amount
   "The current balance of this token for this Vault"
   tokenVault: TokenVault! # map by {Withdraw.config.vaultId}-{Withdraw.sender}-{Withdraw.config.token}
+  transaction: Transaction!
+  emitter: Account!
+  timestamp: BigInt!
 }
 
 type ERC20 @entity {
@@ -183,20 +189,8 @@ type ERC20 @entity {
   decimals: Int!
 }
 
-type Account @entity {
-  id: Bytes!
-  orders: [Order!] @derivedFrom(field: "owner")
-  withdraws: [VaultWithdraw!] @derivedFrom(field: "sender")
-  deposits: [VaultDeposit!] @derivedFrom(field: "sender")
-  ordersCleared: [OrderClear!] @derivedFrom(field: "clearer")
-  bounties: [Bounty!] @derivedFrom(field: "clearer")
-  takeOrderEntities: [TakeOrderEntity!] @derivedFrom(field: "sender")
-  vaults: [Vault!] @derivedFrom(field: "owner")
-  tokenVaults: [TokenVault!] @derivedFrom(field: "owner")
-}
-
 # Created for every pair of AfterClear/Clear events
-type OrderClear @entity {
+type OrderClear implements Event @entity {
   id: ID! # timestamp
   "The sender address who cleared the Orders"
   sender: Account! # Clear.sender
@@ -224,6 +218,9 @@ type OrderClear @entity {
   bounty: Bounty! @derivedFrom(field: "orderClear") # map by unique id created - see Bounty entity
   "The state change that occurred because of this Clear"
   stateChange: OrderClearStateChange! @derivedFrom(field: "orderClear") # map by unique id created - see OrderClearStateChange entity
+  transaction: Transaction!
+  emitter: Account!
+  timestamp: BigInt!
 }
 
 # Created when each OrderClear entity is created
@@ -248,10 +245,13 @@ type Bounty @entity {
   bountyAmountA: BigInt # AfterClear.clearStateChange.aliceOutput - AfterClear.clearStateChange.bobInput
   "The amount paid for bounty token B"
   bountyAmountB: BigInt # AfterClear.clearStateChange.bobOutput - AfterClear.clearStateChange.aliceInput
+  transaction: Transaction!
+  emitter: Account!
+  timestamp: BigInt!
 }
 
 # Created for every pair of TakeOrder events
-type TakeOrderEntity @entity {
+type TakeOrderEntity implements Event @entity {
   id: ID! # Hash of ((TakeOrder.config))
   sender: Account!
   order: Order!
@@ -265,6 +265,9 @@ type TakeOrderEntity @entity {
   outputIOIndex: BigInt! # index of output token for Output Token Array
   inputToken: ERC20! # TakeOrder.config.order.validInputs[TakeOrder.config.inputIOIndex].token
   outputToken: ERC20! # TakeOrder.config.order.validOutputs[TakeOrder.config.outputIOIndex].token
+  transaction: Transaction!
+  emitter: Account!
+  timestamp: BigInt!
 }
 
 # Create when an OrderClear entity is created
@@ -286,4 +289,33 @@ type ClearOrderConfig @entity {
   aliceTokenVaultOutput: String!
   bobTokenVaultInput: String!
   bobTokenVaultOutput: String!
+}
+
+type Account @entity {
+  id: Bytes!
+  orders: [Order!] @derivedFrom(field: "owner")
+  withdraws: [VaultWithdraw!] @derivedFrom(field: "sender")
+  deposits: [VaultDeposit!] @derivedFrom(field: "sender")
+  ordersCleared: [OrderClear!] @derivedFrom(field: "clearer")
+  bounties: [Bounty!] @derivedFrom(field: "clearer")
+  takeOrderEntities: [TakeOrderEntity!] @derivedFrom(field: "sender")
+  vaults: [Vault!] @derivedFrom(field: "owner")
+  tokenVaults: [TokenVault!] @derivedFrom(field: "owner")
+  events: [Event!] @derivedFrom(field: "emitter")
+}
+
+interface Event {
+  id: ID!
+  "Transaction this event was emitted in."
+  transaction: Transaction!
+  "Account that sent the transaction this event was emitted in."
+  emitter: Account!
+  timestamp: BigInt!
+}
+
+type Transaction @entity(immutable: true) {
+  id: ID!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  events: [Event!] @derivedFrom(field: "transaction")
 }

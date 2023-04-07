@@ -6,7 +6,6 @@ import {
   OrderClearStateChange,
   ClearOrderConfig,
   TokenVault,
-  OrderClear,
 } from "../generated/schema";
 import {
   AddOrder,
@@ -30,6 +29,7 @@ import {
   JSONValue,
   JSONValueKind,
   TypedMap,
+  ethereum,
   json,
   log,
 } from "@graphprotocol/graph-ts";
@@ -42,6 +42,7 @@ import {
   createTakeOrderConfig,
   createToken,
   createTokenVault,
+  createTransaction,
   createVault,
   createVaultDeposit,
   createVaultWithdraw,
@@ -58,8 +59,13 @@ export function handleAddOrder(event: AddOrder): void {
   const orderHashHex = getEvenHex(event.params.orderHash.toHex());
 
   let order = new Order(orderHashHex);
-  order.transactionHash = event.transaction.hash;
+  order.transaction = createTransaction(
+    event.transaction.hash.toHex(),
+    event.block
+  ).id;
+  order.timestamp = event.block.timestamp;
   order.owner = createAccount(event.params.order.owner).id;
+  order.emitter = createAccount(event.params.sender).id;
   order.expressionDeployer = event.params.expressionDeployer;
   order.expression = event.params.order.evaluable.expression;
   order.interpreter = event.params.order.evaluable.interpreter;
@@ -128,8 +134,6 @@ export function handleAddOrder(event: AddOrder): void {
       tokenVault.save();
     }
   }
-
-  order.timestamp = event.block.timestamp;
   order.save();
 }
 
@@ -242,6 +246,12 @@ export function handleClear(event: Clear): void {
   orderClear.aOutputIOIndex = clearConfig.aliceOutputIOIndex;
   orderClear.bInputIOIndex = clearConfig.bobInputIOIndex;
   orderClear.bOutputIOIndex = clearConfig.bobOutputIOIndex;
+  orderClear.transaction = createTransaction(
+    event.transaction.hash.toHex(),
+    event.block
+  ).id;
+  orderClear.emitter = createAccount(event.params.sender).id;
+  orderClear.timestamp = event.block.timestamp;
   orderClear.save();
 
   let bounty = new Bounty(orderClear.id);
@@ -262,6 +272,12 @@ export function handleClear(event: Clear): void {
   bounty.bountyTokenB = createToken(
     bob.validOutputs[clearConfig.bobOutputIOIndex.toI32()].token
   ).id;
+  bounty.transaction = createTransaction(
+    event.transaction.hash.toHex(),
+    event.block
+  ).id;
+  bounty.emitter = createAccount(event.params.sender).id;
+  bounty.timestamp = event.block.timestamp;
   bounty.save();
 
   // IO Index values used to clear (for alice and bob)
@@ -373,6 +389,12 @@ export function handleDeposit(event: Deposit): void {
     event.params.config.vaultId.toString(),
     event.params.sender
   ).id;
+  vaultDeposit.transaction = createTransaction(
+    event.transaction.hash.toHex(),
+    event.block
+  ).id;
+  vaultDeposit.emitter = createAccount(event.params.sender).id;
+  vaultDeposit.timestamp = event.block.timestamp;
   vaultDeposit.save();
 }
 
@@ -412,6 +434,12 @@ export function handleTakeOrder(event: TakeOrder): void {
       event.params.config.outputIOIndex.toI32()
     ].token
   ).id;
+  orderEntity.transaction = createTransaction(
+    event.transaction.hash.toHex(),
+    event.block
+  ).id;
+  orderEntity.emitter = createAccount(event.params.sender).id;
+  orderEntity.timestamp = event.block.timestamp;
   orderEntity.save();
 }
 
@@ -442,6 +470,12 @@ export function handleWithdraw(event: Withdraw): void {
     event.params.config.vaultId.toString(),
     event.params.sender
   ).id;
+  vaultWithdraw.transaction = createTransaction(
+    event.transaction.hash.toHex(),
+    event.block
+  ).id;
+  vaultWithdraw.emitter = createAccount(event.params.sender).id;
+  vaultWithdraw.timestamp = event.block.timestamp;
   vaultWithdraw.save();
 }
 
@@ -454,6 +488,7 @@ export function handleInitialized(event: Initialized): void {
 
 export function handleMetaV1(event: MetaV1): void {
   const metaV1 = getRainMetaV1(event.params.meta);
+
   const subjectHex = getEvenHex(event.params.subject.toHex());
 
   // If the subject is equal to the OB address, then the meta data is the OB meta
