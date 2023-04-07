@@ -66,6 +66,8 @@ export function handleAddOrder(event: AddOrder): void {
   order.interpreterStore = event.params.order.evaluable.store;
   order.handleIO = event.params.order.handleIO;
   order.orderActive = true;
+  order.validInputs = [];
+  order.validOutputs = [];
 
   for (let i = 0; i < event.params.order.validInputs.length; i++) {
     let token = createToken(event.params.order.validInputs[i].token);
@@ -96,6 +98,11 @@ export function handleAddOrder(event: AddOrder): void {
       tokenVault.orders = orders;
       tokenVault.save();
     }
+
+    // Add the input to the order entity
+    const auxInput = order.validInputs;
+    if (auxInput) if (!auxInput.includes(input.id)) auxInput.push(input.id);
+    order.validInputs = auxInput;
   }
 
   for (let i = 0; i < event.params.order.validOutputs.length; i++) {
@@ -127,6 +134,13 @@ export function handleAddOrder(event: AddOrder): void {
       tokenVault.orders = orders;
       tokenVault.save();
     }
+
+    // Add the input to the order entity
+    const auxOutput = order.validOutputs;
+    if (auxOutput)
+      if (!auxOutput.includes(output.id)) auxOutput.push(output.id);
+
+    order.validOutputs = auxOutput;
   }
 
   order.timestamp = event.block.timestamp;

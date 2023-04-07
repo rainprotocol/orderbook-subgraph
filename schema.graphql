@@ -64,10 +64,10 @@ type Order @entity {
   meta: RainMetaV1
 
   "validInputs"
-  validInputs: [IO!] @derivedFrom(field: "order")
+  validInputs: [IO!]
 
   "validOutputs"
-  validOutputs: [IO!] @derivedFrom(field: "order")
+  validOutputs: [IO!]
 
   "Timestamp when the order was added"
   timestamp: BigInt!
