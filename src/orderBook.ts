@@ -143,10 +143,9 @@ export function handleAddOrder(event: AddOrder): void {
       tokenVault.save();
     }
 
-   // Use the OrderString class to generate a Order JSON string compatible value
-  const orderString = new OrderString(orderParam);
-  order.orderJSONString = orderString.stringify();
-
+    // Use the OrderString class to generate a Order JSON string compatible value
+    const orderString = new OrderString(orderParam);
+    order.orderJSONString = orderString.stringify();
 
     // Add the input to the order entity
     const auxOutput = order.validOutputs;
@@ -462,6 +461,29 @@ export function handleTakeOrder(event: TakeOrder): void {
   orderEntity.emitter = createAccount(event.params.sender).id;
   orderEntity.timestamp = event.block.timestamp;
   orderEntity.save();
+
+  let order = event.params.config.order;
+  let inputTokenVault = createTokenVault(
+    order.validInputs[
+      event.params.config.inputIOIndex.toI32()
+    ].vaultId.toString(),
+    order.owner,
+    order.validInputs[event.params.config.inputIOIndex.toI32()].token
+  );
+
+  inputTokenVault.balance = inputTokenVault.balance.plus(event.params.input);
+
+  let outputTokenVault = createTokenVault(
+    order.validOutputs[
+      event.params.config.outputIOIndex.toI32()
+    ].vaultId.toString(),
+    order.owner,
+    order.validOutputs[event.params.config.outputIOIndex.toI32()].token
+  );
+
+  outputTokenVault.balance = outputTokenVault.balance.minus(
+    event.params.output
+  );
 }
 
 export function handleWithdraw(event: Withdraw): void {
