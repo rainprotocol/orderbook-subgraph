@@ -127,6 +127,7 @@ type TokenVault @entity {
   # updated on every Deposit/Withdraw event that occurs for this {vaultId}-{owner}-{token}
   "The balance of this token, for this vault, for this owner"
   balance: BigInt!
+  balanceDisplay: BigDecimal!
 
   # Add to array:
   # when {Order.inputVault}-{Order.owner}-{Order.inputToken} match this TokenVault
@@ -154,6 +155,7 @@ type VaultDeposit implements Event @entity {
   vault: Vault! # map by {Deposit.config.vaultId}-{sender}
   "The amount that was deposited"
   amount: BigInt! # Deposit.config.amount
+  amountDisplay: BigDecimal!
   "The current balance of this token for this Vault"
   tokenVault: TokenVault! # map by {Deposit.config.vaultId}-{Deposit.sender}-{Deposit.config.token}
   transaction: Transaction!
@@ -174,8 +176,10 @@ type VaultWithdraw implements Event @entity {
   vault: Vault! # map by {Withdraw.config.vaultId}-{sender}
   "The amount that was requested be withdrawn"
   requestedAmount: BigInt! # Withdraw.config.amount
+  requestedAmountDisplay: BigDecimal! # Withdraw.config.amount
   "The amount that was withdrawn"
   amount: BigInt! # Withdraw.amount
+  amountDisplay: BigDecimal!
   "The current balance of this token for this Vault"
   tokenVault: TokenVault! # map by {Withdraw.config.vaultId}-{Withdraw.sender}-{Withdraw.config.token}
   transaction: Transaction!
@@ -188,6 +192,7 @@ type ERC20 @entity {
   name: String!
   symbol: String!
   totalSupply: BigInt!
+  totalSupplyDisplay: BigDecimal!
   decimals: Int!
 }
 
@@ -245,8 +250,12 @@ type Bounty @entity {
   bountyTokenB: ERC20! # Clear.bob.validOutputs[clearConfig.bobOutputIOIndex].token
   "The amount paid for bounty token A"
   bountyAmountA: BigInt # AfterClear.clearStateChange.aliceOutput - AfterClear.clearStateChange.bobInput
+  bountyAmountADisplay: BigDecimal
+
   "The amount paid for bounty token B"
   bountyAmountB: BigInt # AfterClear.clearStateChange.bobOutput - AfterClear.clearStateChange.aliceInput
+  bountyAmountBDisplay: BigDecimal
+
   transaction: Transaction!
   emitter: Account!
   timestamp: BigInt!
@@ -259,8 +268,12 @@ type TakeOrderEntity implements Event @entity {
   order: Order!
   "The input amount from the perspective of sender"
   input: BigInt!
+  inputDisplay: BigDecimal!
+
   "The output amount from the perspective of sender"
   output: BigInt!
+  outputDisplay: BigDecimal!
+
   "The index of the input token in order to match with the take order output."
   inputIOIndex: BigInt! # index of input token for Input Token Array
   "The index of the output token in `order` to match with the take order input."
