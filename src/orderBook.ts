@@ -29,7 +29,6 @@ import {
   JSONValue,
   JSONValueKind,
   TypedMap,
-  ethereum,
   json,
 } from "@graphprotocol/graph-ts";
 
@@ -51,6 +50,7 @@ import {
   getRainMetaV1,
   isHexadecimalString,
   stringToArrayBuffer,
+  toDisplay,
 } from "./utils";
 import { CBORDecoder } from "@rainprotocol/assemblyscript-cbor";
 import { OrderString } from "./orderJsonString";
@@ -143,10 +143,9 @@ export function handleAddOrder(event: AddOrder): void {
       tokenVault.save();
     }
 
-   // Use the OrderString class to generate a Order JSON string compatible value
-  const orderString = new OrderString(orderParam);
-  order.orderJSONString = orderString.stringify();
-
+    // Use the OrderString class to generate a Order JSON string compatible value
+    const orderString = new OrderString(orderParam);
+    order.orderJSONString = orderString.stringify();
 
     // Add the input to the order entity
     const auxOutput = order.validOutputs;
@@ -184,7 +183,15 @@ export function handleAfterClear(event: AfterClear): void {
     let bounty = Bounty.load(config.orderClearId);
     if (bounty) {
       bounty.bountyAmountA = bountyAmountA;
+      bounty.bountyAmountADisplay = toDisplay(
+        bountyAmountA,
+        bounty.bountyTokenA
+      );
       bounty.bountyAmountB = bountyAmountB;
+      bounty.bountyAmountBDisplay = toDisplay(
+        bountyAmountB,
+        bounty.bountyTokenB
+      );
       bounty.save();
     }
 
@@ -194,6 +201,10 @@ export function handleAfterClear(event: AfterClear): void {
       if (tokenVaultBounty_A) {
         tokenVaultBounty_A.balance =
           tokenVaultBounty_A.balance.plus(bountyAmountA);
+        tokenVaultBounty_A.balanceDisplay = toDisplay(
+          tokenVaultBounty_A.balance,
+          tokenVaultBounty_A.token
+        );
 
         tokenVaultBounty_A.save();
       }
@@ -205,6 +216,10 @@ export function handleAfterClear(event: AfterClear): void {
       if (tokenVaultBounty_B) {
         tokenVaultBounty_B.balance =
           tokenVaultBounty_B.balance.plus(bountyAmountB);
+        tokenVaultBounty_B.balanceDisplay = toDisplay(
+          tokenVaultBounty_B.balance,
+          tokenVaultBounty_B.token
+        );
 
         tokenVaultBounty_B.save();
       }
@@ -221,6 +236,10 @@ export function handleAfterClear(event: AfterClear): void {
     if (aliceTokenVaultInput) {
       aliceTokenVaultInput.balance =
         aliceTokenVaultInput.balance.plus(aliceInput);
+      aliceTokenVaultInput.balanceDisplay = toDisplay(
+        aliceTokenVaultInput.balance,
+        aliceTokenVaultInput.token
+      );
       aliceTokenVaultInput.save();
     }
 
@@ -228,6 +247,10 @@ export function handleAfterClear(event: AfterClear): void {
     if (aliceTokenVaultOutput) {
       aliceTokenVaultOutput.balance =
         aliceTokenVaultOutput.balance.minus(aliceOutput);
+      aliceTokenVaultOutput.balanceDisplay = toDisplay(
+        aliceTokenVaultOutput.balance,
+        aliceTokenVaultOutput.token
+      );
       aliceTokenVaultOutput.save();
     }
 
@@ -235,6 +258,10 @@ export function handleAfterClear(event: AfterClear): void {
     const bobTokenVaultInput = TokenVault.load(bobTokenVaultInput_ID);
     if (bobTokenVaultInput) {
       bobTokenVaultInput.balance = bobTokenVaultInput.balance.plus(bobInput);
+      bobTokenVaultInput.balanceDisplay = toDisplay(
+        bobTokenVaultInput.balance,
+        bobTokenVaultInput.token
+      );
       bobTokenVaultInput.save();
     }
 
@@ -242,6 +269,10 @@ export function handleAfterClear(event: AfterClear): void {
     if (bobTokenVaultOutput) {
       bobTokenVaultOutput.balance =
         bobTokenVaultOutput.balance.minus(bobOutput);
+      bobTokenVaultOutput.balanceDisplay = toDisplay(
+        bobTokenVaultOutput.balance,
+        bobTokenVaultOutput.token
+      );
       bobTokenVaultOutput.save();
     }
   }
@@ -393,6 +424,10 @@ export function handleDeposit(event: Deposit): void {
 
   if (tokenVault) {
     tokenVault.balance = tokenVault.balance.plus(event.params.config.amount);
+    tokenVault.balanceDisplay = toDisplay(
+      tokenVault.balance,
+      event.params.config.token
+    );
     tokenVault.save();
   }
 
@@ -405,6 +440,10 @@ export function handleDeposit(event: Deposit): void {
     event.params.sender
   ).id;
   vaultDeposit.amount = event.params.config.amount;
+  vaultDeposit.amountDisplay = toDisplay(
+    vaultDeposit.amount,
+    event.params.config.token
+  );
   vaultDeposit.tokenVault = tokenVault.id;
   vaultDeposit.vault = createVault(
     event.params.config.vaultId.toString(),
@@ -442,7 +481,19 @@ export function handleTakeOrder(event: TakeOrder): void {
     changetype<ClearAliceStruct>(event.params.config.order)
   ).id;
   orderEntity.input = event.params.input;
+  orderEntity.inputDisplay = toDisplay(
+    event.params.input,
+    event.params.config.order.validInputs[
+      event.params.config.inputIOIndex.toI32()
+    ].token
+  );
   orderEntity.output = event.params.output;
+  orderEntity.outputDisplay = toDisplay(
+    event.params.output,
+    event.params.config.order.validOutputs[
+      event.params.config.outputIOIndex.toI32()
+    ].token
+  );
   orderEntity.inputIOIndex = event.params.config.inputIOIndex;
   orderEntity.outputIOIndex = event.params.config.outputIOIndex;
   orderEntity.inputToken = createToken(
@@ -473,6 +524,10 @@ export function handleWithdraw(event: Withdraw): void {
 
   if (tokenVault) {
     tokenVault.balance = tokenVault.balance.minus(event.params.config.amount);
+    tokenVault.balanceDisplay = toDisplay(
+      tokenVault.balance,
+      event.params.config.token
+    );
     tokenVault.save();
   }
 
@@ -485,7 +540,15 @@ export function handleWithdraw(event: Withdraw): void {
     event.params.sender
   ).id;
   vaultWithdraw.requestedAmount = event.params.config.amount;
+  vaultWithdraw.requestedAmountDisplay = toDisplay(
+    event.params.config.amount,
+    event.params.config.token
+  );
   vaultWithdraw.amount = event.params.amount;
+  vaultWithdraw.amountDisplay = toDisplay(
+    vaultWithdraw.amount,
+    event.params.config.token
+  );
   vaultWithdraw.tokenVault = tokenVault.id;
   vaultWithdraw.vault = createVault(
     event.params.config.vaultId.toString(),

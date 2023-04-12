@@ -6,6 +6,8 @@ import {
   Address,
   ethereum,
   crypto,
+  BigDecimal,
+  log,
 } from "@graphprotocol/graph-ts";
 import {
   Account,
@@ -102,6 +104,8 @@ export function createToken(address: Bytes): ERC20 {
     token.name = !name.reverted ? name.value : "NONE";
     token.symbol = !symbol.reverted ? symbol.value : "NONE";
     token.totalSupply = BigInt.zero();
+    token.totalSupplyDisplay = BigDecimal.zero();
+    token.save();
   }
   let totalSupply = reserveToken.try_totalSupply();
   token.totalSupply = !totalSupply.reverted
@@ -134,6 +138,7 @@ export function createTokenVault(
     tokenVault.owner = createAccount(owner).id;
     tokenVault.token = createToken(token).id;
     tokenVault.balance = BigInt.zero();
+    tokenVault.balanceDisplay = BigDecimal.zero();
     tokenVault.vault = createVault(vaultId, owner).id;
     tokenVault.orders = [];
     tokenVault.orderClears = [];
@@ -301,4 +306,21 @@ export function createTransaction(
     transaction.save();
   }
   return transaction;
+}
+
+export function toDisplay(amount: BigInt, token: Bytes): BigDecimal {
+  let erc20 = createToken(token);
+  if (erc20) {
+    let denominator = BigInt.fromString(getZeros(erc20.decimals));
+    return amount.toBigDecimal().div(denominator.toBigDecimal());
+  }
+  return amount.toBigDecimal().div(BigDecimal.fromString(getZeros(0)));
+}
+
+function getZeros(num: number): string {
+  let s = "1";
+  for (let i = 0; i < num; i++) {
+    s = s + "0";
+  }
+  return s;
 }
