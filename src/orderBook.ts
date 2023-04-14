@@ -513,6 +513,55 @@ export function handleTakeOrder(event: TakeOrder): void {
   orderEntity.emitter = createAccount(event.params.sender).id;
   orderEntity.timestamp = event.block.timestamp;
   orderEntity.save();
+
+  // Updating Balance
+
+  let order = event.params.config.order;
+
+  // IO Index values used to takeOrder
+  const inputIOIndex = event.params.config.inputIOIndex.toI32();
+  const outputIOIndex = event.params.config.outputIOIndex.toI32();
+
+  // Valid inputs/outpus based on the Index used
+  const inputValues = order.validInputs[inputIOIndex];
+  const outputValues = order.validOutputs[outputIOIndex];
+
+  // Token input/output based on the Index used
+  const tokenInput = inputValues.token;
+  const tokenOutput = outputValues.token;
+
+  // Vault IDs input/output based on the Index used
+  const vaultInput = inputValues.vaultId;
+  const vaultOutput = outputValues.vaultId;
+
+  const tokenVaultInput = `${vaultInput.toString()}-${order.owner.toHex()}-${tokenInput.toHex()}`;
+  const tokenVaultOutput = `${vaultOutput.toString()}-${order.owner.toHex()}-${tokenOutput.toHex()}`;
+
+  // Updating order input/output balance
+  const orderTokenVaultInput = TokenVault.load(tokenVaultInput);
+  if (orderTokenVaultInput) {
+    orderTokenVaultInput.balance = orderTokenVaultInput.balance.plus(
+      event.params.output
+    );
+    orderTokenVaultInput.balanceDisplay = toDisplay(
+      orderTokenVaultInput.balance,
+      orderTokenVaultInput.token
+    );
+    orderTokenVaultInput.save();
+  }
+
+  // Updating order input/output balance
+  const orderTokenVaultOutput = TokenVault.load(tokenVaultOutput);
+  if (orderTokenVaultOutput) {
+    orderTokenVaultOutput.balance = orderTokenVaultOutput.balance.minus(
+      event.params.input
+    );
+    orderTokenVaultOutput.balanceDisplay = toDisplay(
+      orderTokenVaultOutput.balance,
+      orderTokenVaultOutput.token
+    );
+    orderTokenVaultOutput.save();
+  }
 }
 
 export function handleWithdraw(event: Withdraw): void {
