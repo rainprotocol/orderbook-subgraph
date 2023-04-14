@@ -324,3 +324,11 @@ function getZeros(num: number): string {
   }
   return s;
 }
+
+export function gcd(a: BigInt, b: BigInt): BigInt {
+  if (b.equals(BigInt.zero())) {
+    return a;
+  } else {
+    return gcd(b, a.mod(b));
+  }
+}

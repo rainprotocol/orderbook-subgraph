@@ -30,6 +30,7 @@ import {
   JSONValueKind,
   TypedMap,
   json,
+  log,
 } from "@graphprotocol/graph-ts";
 
 import {
@@ -44,6 +45,7 @@ import {
   createVault,
   createVaultDeposit,
   createVaultWithdraw,
+  gcd,
   getEvenHex,
   getKeccak256FromBytes,
   getOB,
@@ -494,6 +496,15 @@ export function handleTakeOrder(event: TakeOrder): void {
       event.params.config.outputIOIndex.toI32()
     ].token
   );
+
+  let input = BigInt.fromString(orderEntity.inputDisplay.toString());
+  let output = BigInt.fromString(orderEntity.outputDisplay.toString());
+  let GCD = gcd(input, output);
+
+  orderEntity.inputRatio = input.div(GCD);
+  orderEntity.outputRatio = output.div(GCD);
+  log.info("GCD: {}, OPD: {}", [GCD.toString(), output.div(GCD).toString()]);
+
   orderEntity.inputIOIndex = event.params.config.inputIOIndex;
   orderEntity.outputIOIndex = event.params.config.outputIOIndex;
   orderEntity.inputToken = createToken(
