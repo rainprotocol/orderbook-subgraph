@@ -4,11 +4,11 @@ schema:
 dataSources:
   - kind: ethereum/contract
     name: OrderBook
-    network: localhost
+    network: mumbai
     source:
-      address: "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
+      address: "0xA0101DeCf7869587405eD35A8e99C4EFb32DC582"
       abi: OrderBook
-      startBlock: 6
+      startBlock: 34191503
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -43,7 +43,7 @@ dataSources:
           handler: handleOrderZeroAmount
         - event: RemoveOrder(address,(address,bool,(address,address,address),(address,uint8,uint256)[],(address,uint8,uint256)[]),uint256)
           handler: handleRemoveOrder
-        - event: TakeOrder(address,((address,bool,(address,address,address),(address,uint8,uint256)[],(address,uint8,uint256)[]),uint256,uint256,(address,bytes,uint256[])[]),uint256,uint256)
+        - event: TakeOrder(address,((address,bool,(address,address,address),(address,uint8,uint256)[],(address,uint8,uint256)[]),uint256,uint256,(address,uint256[],bytes)[]),uint256,uint256)
           handler: handleTakeOrder
         - event: Withdraw(address,(address,uint256,uint256),uint256)
           handler: handleWithdraw
@@ -51,7 +51,7 @@ dataSources:
 templates: 
   - kind: ethereum/contract
     name: ERC20Template
-    network: localhost
+    network: mumbai
     source:
       abi: ReserveToken
     mapping:

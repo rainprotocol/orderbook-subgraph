@@ -30,6 +30,7 @@
     "@rainprotocol/assemblyscript-cbor": "git+https://github.com/rainprotocol/assemblyscript-cbor.git#6ab1823603e297d1f6e5ca880131cbbe2e31c360",
     "@rainprotocol/rain-protocol": "git+https://github.com/rainprotocol/rain-protocol.git#283ddb7a7bc5db6dd3797496fac6cef815e2fbec",
     "0xsequence": "^0.39.0",
+    "commander": "^10.0.0",
     "hardhat": "^2.13.0",
     "mustache": "^3.2.1"
   },
