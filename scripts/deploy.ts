@@ -42,7 +42,7 @@ const getRPCURL = (network: string): string => {
   if(network == "mumbai") return "https://rpc-mumbai.maticvigil.com";
   if(network == "mainnet") return "https://eth.llamarpc.com";
   if(network == "goerli") return "https://rpc.ankr.com/eth_goerli";
-  if(network == "polygon") return "https://polygon-rpc.com";
+  if(network == "matic") return "https://polygon-rpc.com";
   return "http://localhost:8545"
 }
 
