@@ -24,7 +24,7 @@ import {
 import { getEventArgs, waitForSubgraphToBeSynced } from "./utils";
 import { FetchResult } from "apollo-fetch";
 
-describe("TakeOrderEntity", () => {
+describe.only("TakeOrderEntity", () => {
   let tokenA: ReserveToken18;
   let tokenB: ReserveToken18;
 

@@ -34,6 +34,7 @@ import {
 } from "@graphprotocol/graph-ts";
 
 import {
+  BDtoBIMultiplyer,
   RAIN_META_DOCUMENT_HEX,
   createAccount,
   createOrder,
@@ -497,13 +498,28 @@ export function handleTakeOrder(event: TakeOrder): void {
     ].token
   );
 
-  let input = BigInt.fromString(orderEntity.inputDisplay.toString());
-  let output = BigInt.fromString(orderEntity.outputDisplay.toString());
+  let multiplier = BDtoBIMultiplyer(
+    orderEntity.inputDisplay,
+    orderEntity.outputDisplay
+  );
+
+  let input = BigInt.fromString(
+    orderEntity.inputDisplay.times(multiplier.toBigDecimal()).toString()
+  );
+  let output = BigInt.fromString(
+    orderEntity.outputDisplay.times(multiplier.toBigDecimal()).toString()
+  );
+
   let GCD = gcd(input, output);
 
-  orderEntity.inputRatio = input.div(GCD);
-  orderEntity.outputRatio = output.div(GCD);
-  log.info("GCD: {}, OPD: {}", [GCD.toString(), output.div(GCD).toString()]);
+  orderEntity.inputRatio = input.div(GCD).toString();
+  orderEntity.outputRatio = output.div(GCD).toString();
+  // log.info("inputDisplay: {} : {}, outputDisplay: {} : {}", [
+  //   orderEntity.inputDisplay.toString(),
+  //   BDtoBI(orderEntity.inputDisplay).toString(),
+  //   orderEntity.outputDisplay.toString(),
+  //   BDtoBI(orderEntity.outputDisplay).toString(),
+  // ]);
 
   orderEntity.inputIOIndex = event.params.config.inputIOIndex;
   orderEntity.outputIOIndex = event.params.config.outputIOIndex;
