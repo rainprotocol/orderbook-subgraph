@@ -11,8 +11,8 @@ struct MultiClear {
     Order alice_;
     Order bob_;
     ClearConfig clearConfig_;
-    SignedContext[] aliceSignedContext_;
-    SignedContext[] bobSignedContext_;
+    SignedContextV1[] aliceSignedContext_;
+    SignedContextV1[] bobSignedContext_;
 }
 
 /// @title OBMultiTx
