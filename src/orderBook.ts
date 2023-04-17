@@ -483,15 +483,15 @@ export function handleTakeOrder(event: TakeOrder): void {
   orderEntity.input = event.params.input;
   orderEntity.inputDisplay = toDisplay(
     event.params.input,
-    event.params.config.order.validInputs[
-      event.params.config.inputIOIndex.toI32()
+    event.params.config.order.validOutputs[
+      event.params.config.outputIOIndex.toI32()
     ].token
   );
   orderEntity.output = event.params.output;
   orderEntity.outputDisplay = toDisplay(
     event.params.output,
-    event.params.config.order.validOutputs[
-      event.params.config.outputIOIndex.toI32()
+    event.params.config.order.validInputs[
+      event.params.config.inputIOIndex.toI32()
     ].token
   );
   orderEntity.inputIOIndex = event.params.config.inputIOIndex;
