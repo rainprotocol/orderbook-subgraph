@@ -30,9 +30,11 @@ import {
   JSONValueKind,
   TypedMap,
   json,
+  log,
 } from "@graphprotocol/graph-ts";
 
 import {
+  BDtoBIMultiplyer,
   RAIN_META_DOCUMENT_HEX,
   createAccount,
   createOrder,
@@ -44,6 +46,7 @@ import {
   createVault,
   createVaultDeposit,
   createVaultWithdraw,
+  gcd,
   getEvenHex,
   getKeccak256FromBytes,
   getOB,
@@ -494,6 +497,24 @@ export function handleTakeOrder(event: TakeOrder): void {
       event.params.config.inputIOIndex.toI32()
     ].token
   );
+
+  let multiplier = BDtoBIMultiplyer(
+    orderEntity.inputDisplay,
+    orderEntity.outputDisplay
+  );
+
+  let input = BigInt.fromString(
+    orderEntity.inputDisplay.times(multiplier.toBigDecimal()).toString()
+  );
+  let output = BigInt.fromString(
+    orderEntity.outputDisplay.times(multiplier.toBigDecimal()).toString()
+  );
+
+  let GCD = gcd(input, output);
+
+  orderEntity.inputRatio = input.div(GCD).toString();
+  orderEntity.outputRatio = output.div(GCD).toString();
+
   orderEntity.inputIOIndex = event.params.config.inputIOIndex;
   orderEntity.outputIOIndex = event.params.config.outputIOIndex;
   orderEntity.inputToken = createToken(

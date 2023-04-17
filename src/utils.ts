@@ -324,3 +324,23 @@ function getZeros(num: number): string {
   }
   return s;
 }
+
+export function gcd(a: BigInt, b: BigInt): BigInt {
+  if (b.equals(BigInt.zero())) {
+    return a;
+  } else {
+    return gcd(b, a.mod(b));
+  }
+}
+
+export function BDtoBIMultiplyer(n1: BigDecimal, n2: BigDecimal): BigInt {
+  let number: BigDecimal;
+  if (n1 < n2) {
+    number = n1;
+  } else {
+    number = n2;
+  }
+  let location = number.toString().indexOf(".");
+  let len = number.toString().slice(location + 1).length;
+  return BigInt.fromString(getZeros(len));
+}
