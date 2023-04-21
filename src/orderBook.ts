@@ -88,15 +88,6 @@ export function handleAddOrder(event: AddOrder): void {
       orderParam.validInputs[i].vaultId.toString(),
       orderParam.owner
     );
-    let input = new IO(
-      `${orderHashHex}-${token.id.toHex()}-${orderParam.validInputs[i].vaultId}`
-    );
-    input.token = token.id;
-    input.decimals = orderParam.validInputs[i].decimals;
-    input.vault = vault.id;
-    input.order = orderHashHex;
-    input.save();
-
     let tokenVault = createTokenVault(
       orderParam.validInputs[i].vaultId.toString(),
       event.params.sender,
@@ -110,6 +101,16 @@ export function handleAddOrder(event: AddOrder): void {
       tokenVault.save();
     }
 
+    let input = new IO(
+      `${orderHashHex}-${token.id.toHex()}-${orderParam.validInputs[i].vaultId}`
+    );
+    input.token = token.id;
+    input.decimals = orderParam.validInputs[i].decimals;
+    input.vault = vault.id;
+    input.order = orderHashHex;
+    input.tokenVault = tokenVault.id;
+    input.save();
+
     // Add the input to the order entity
     const auxInput = order.validInputs;
     if (auxInput) if (!auxInput.includes(input.id)) auxInput.push(input.id);
@@ -122,17 +123,6 @@ export function handleAddOrder(event: AddOrder): void {
       orderParam.validOutputs[i].vaultId.toString(),
       orderParam.owner
     );
-    let output = new IO(
-      `${orderHashHex}-${token.id.toHex()}-${
-        orderParam.validOutputs[i].vaultId
-      }`
-    );
-    output.token = token.id;
-    output.decimals = orderParam.validOutputs[i].decimals;
-    output.vault = vault.id;
-    output.order = orderHashHex;
-    output.save();
-
     let tokenVault = createTokenVault(
       orderParam.validOutputs[i].vaultId.toString(),
       event.params.sender,
@@ -145,6 +135,19 @@ export function handleAddOrder(event: AddOrder): void {
       tokenVault.orders = orders;
       tokenVault.save();
     }
+
+    let output = new IO(
+      `${orderHashHex}-${token.id.toHex()}-${
+        orderParam.validOutputs[i].vaultId
+      }`
+    );
+    output.token = token.id;
+    output.decimals = orderParam.validOutputs[i].decimals;
+    output.vault = vault.id;
+    output.order = orderHashHex;
+    output.tokenVault = tokenVault.id;
+    output.save();
+
 
     // Use the OrderString class to generate a Order JSON string compatible value
     const orderString = new OrderString(orderParam);
