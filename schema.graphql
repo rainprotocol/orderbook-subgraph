@@ -82,6 +82,7 @@ type IO @entity {
   decimals: Int!
   vault: Vault!
   order: Order!
+  tokenVault: TokenVault!
 }
 
 # Created and updated whenever an AddOrder event occurs
