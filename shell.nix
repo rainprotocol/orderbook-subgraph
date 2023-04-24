@@ -49,19 +49,19 @@ let
   install-submodules = pkgs.writeShellScriptBin "install-submodules" ''
     mkdir -p lib
 
-    # git -C lib pull  https://github.com/foundry-rs/forge-std.git
-    # git -C lib pull https://github.com/OpenZeppelin/openzeppelin-contracts.git
-    # git -C lib pull https://github.com/rainprotocol/rain.cooldown.git
-    # git -C lib pull https://github.com/rainprotocol/sol.lib.binmaskflag.git
-    # git -C lib pull https://github.com/rainprotocol/sol.metadata.git 
-    # git -C lib pull https://github.com/rainprotocol/rain.math.saturating.git 
-    # git -C lib pull https://github.com/rainprotocol/rain.math.fixedpoint 
-    # git -C lib pull https://github.com/rainprotocol/rain.interface.factory
-    # git -C lib pull https://github.com/rainprotocol/rain.interface.interpreter 
-    # git -C lib pull https://github.com/rainprotocol/sol.lib.datacontract.git 
-    # git -C lib pull https://github.com/rainprotocol/sol.lib.memory
-    # git -C lib pull https://github.com/rainprotocol/rain.interface.orderbook.git 
-    # git -C lib pull https://github.com/rainprotocol/rain.lib.typecast.git
+    git -C lib pull  https://github.com/foundry-rs/forge-std.git
+    git -C lib pull https://github.com/OpenZeppelin/openzeppelin-contracts.git
+    git -C lib pull https://github.com/rainprotocol/rain.cooldown.git
+    git -C lib pull https://github.com/rainprotocol/sol.lib.binmaskflag.git
+    git -C lib pull https://github.com/rainprotocol/sol.metadata.git 
+    git -C lib pull https://github.com/rainprotocol/rain.math.saturating.git 
+    git -C lib pull https://github.com/rainprotocol/rain.math.fixedpoint 
+    git -C lib pull https://github.com/rainprotocol/rain.interface.factory
+    git -C lib pull https://github.com/rainprotocol/rain.interface.interpreter 
+    git -C lib pull https://github.com/rainprotocol/sol.lib.datacontract.git 
+    git -C lib pull https://github.com/rainprotocol/sol.lib.memory
+    git -C lib pull https://github.com/rainprotocol/rain.interface.orderbook.git 
+    git -C lib pull https://github.com/rainprotocol/rain.lib.typecast.git
 
     git submodule add https://github.com/foundry-rs/forge-std.git lib/forge-std
     git submodule add https://github.com/OpenZeppelin/openzeppelin-contracts.git lib/openzeppelin-contracts
