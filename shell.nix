@@ -50,21 +50,18 @@ install-submodules = pkgs.writeShellScriptBin "install-submodules" ''
     mkdir -p lib
 
     git -C lib clone https://github.com/foundry-rs/forge-std.git
-    git -C lib clone https://github.com/OpenZeppelin/openzeppelin-contracts.git
     git -C lib clone https://github.com/rainprotocol/rain.cooldown.git
-    git -C lib clone https://github.com/rainprotocol/sol.lib.binmaskflag.git
-    git -C lib clone https://github.com/rainprotocol/sol.metadata.git 
-    git -C lib clone https://github.com/rainprotocol/rain.math.saturating.git 
-    git -C lib clone https://github.com/rainprotocol/rain.math.fixedpoint 
-    git -C lib clone https://github.com/rainprotocol/rain.interface.factory
-    git -C lib clone https://github.com/rainprotocol/rain.interface.interpreter 
-    git -C lib clone https://github.com/rainprotocol/sol.lib.datacontract.git 
-    git -C lib clone https://github.com/rainprotocol/sol.lib.memory
+    git -C lib clone https://github.com/rainprotocol/rain.interface.factory.git
+    git -C lib clone https://github.com/rainprotocol/rain.interface.interpreter.git 
     git -C lib clone https://github.com/rainprotocol/rain.interface.orderbook.git 
-    git -C lib clone https://github.com/rainprotocol/rain.lib.typecast.git
+    git -C lib clone https://github.com/rainprotocol/rain.math.fixedpoint.git 
+    git -C lib clone https://github.com/rainprotocol/rain.math.saturating.git 
+    git -C lib clone https://github.com/rainprotocol/sol.lib.binmaskflag.git
+    git -C lib clone https://github.com/rainprotocol/sol.lib.datacontract.git 
+    git -C lib clone https://github.com/rainprotocol/sol.lib.memory.git
+    git -C lib clone https://github.com/rainprotocol/sol.metadata.git 
 
     git submodule add https://github.com/foundry-rs/forge-std.git lib/forge-std
-    git submodule add https://github.com/OpenZeppelin/openzeppelin-contracts.git lib/openzeppelin-contracts
     git submodule add https://github.com/rainprotocol/rain.cooldown.git lib/rain.cooldown
     git submodule add https://github.com/rainprotocol/sol.lib.binmaskflag.git lib/sol.lib.binmaskflag
     git submodule add https://github.com/rainprotocol/sol.metadata.git lib/sol.metadata
@@ -75,21 +72,18 @@ install-submodules = pkgs.writeShellScriptBin "install-submodules" ''
     git submodule add https://github.com/rainprotocol/sol.lib.datacontract.git lib/sol.lib.datacontract
     git submodule add https://github.com/rainprotocol/sol.lib.memory.git lib/sol.lib.memory
     git submodule add https://github.com/rainprotocol/rain.interface.orderbook.git lib/rain.interface.orderbook
-    git submodule add https://github.com/rainprotocol/rain.lib.typecast.git lib/rain.lib.typecast
 
     git -C lib/forge-std checkout 2b58ecb
-    git -C lib/openzeppelin-contracts checkout d00acef
     git -C lib/rain.cooldown checkout 621c02d
-    git -C lib/sol.lib.binmaskflag checkout 214473a
-    git -C lib/sol.metadata checkout fdb9a5f
-    git -C lib/rain.math.saturating checkout 8d8406a
-    git -C lib/rain.math.fixedpoint checkout 5fa24ac
     git -C lib/rain.interface.factory checkout 25458fb
-    git -C lib/rain.interface.interpreter checkout 70dcea6
-    git -C lib/sol.lib.datacontract checkout 252093f
-    git -C lib/sol.lib.memory checkout d0287d0
+    git -C lib/rain.interface.interpreter checkout 71b54a1
     git -C lib/rain.interface.orderbook checkout 738968a
-    git -C lib/rain.lib.typecast checkout 4ad548b
+    git -C lib/rain.math.fixedpoint checkout 5fa24ac
+    git -C lib/rain.math.saturating checkout 8d8406a
+    git -C lib/sol.lib.binmaskflag checkout 214473a
+    git -C lib/sol.lib.datacontract checkout 252093f
+    git -C lib/sol.lib.memory checkout 5b5d8a9
+    git -C lib/sol.metadata checkout fdb9a5f
     
     forge install --root lib/forge-std
     forge install --root lib/openzeppelin-contracts
@@ -103,7 +97,6 @@ install-submodules = pkgs.writeShellScriptBin "install-submodules" ''
     forge install --root lib/sol.lib.datacontract
     forge install --root lib/sol.lib.memory
     forge install --root lib/rain.interface.orderbook
-    forge install --root lib/rain.lib.typecast
 
     forge build --root lib/forge-std
     forge build --root lib/openzeppelin-contracts
@@ -118,7 +111,6 @@ install-submodules = pkgs.writeShellScriptBin "install-submodules" ''
     forge build --root lib/sol.lib.datacontract
     forge build --root lib/sol.lib.memory
     forge build --root lib/rain.interface.orderbook
-    forge build --root lib/rain.lib.typecast
   '';
 
   copy-abis = pkgs.writeShellScriptBin "copy-abis" ''

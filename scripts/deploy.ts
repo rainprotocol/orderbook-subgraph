@@ -102,7 +102,6 @@ const checkMeta = async (network: string, contract: string): Promise<number> => 
     const type = onchainABI[i].type;
     if (type == "event") {
       onchainEvents.push(onchainABI[i])
-      if( onchainABI[i].name == "TakeOrder") console.log(JSON.stringify(onchainABI[i], null, 2))
     }
   }
 
