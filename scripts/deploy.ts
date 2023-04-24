@@ -3,7 +3,11 @@ import * as dotenv from "dotenv";
 import * as path from "path";
 import * as fs from "fs";
 import { program } from "commander";
-import { ethers, network } from "hardhat";
+import { artifacts, ethers, network } from "hardhat";
+import { FetchResult, createApolloFetch } from "apollo-fetch";
+import { getRainMetaDocumentFromContract, inflateJson } from "../utils";
+import { decodeRainMetaDocument } from "../utils/meta/cbor";
+import { MAGIC_NUMBERS } from "../test/utils";
 
 dotenv.config();
 
@@ -53,16 +57,75 @@ const checkContract = async (address: string, network: string) => {
   if(code.length < 3) throw new Error("Contract address does not have any bytecode.");
 }
 
+const getSubgraph = (network: string): string => {
+  if (network === "mumbai")
+    return "https://api.thegraph.com/subgraphs/name/rainprotocol/interpreter-registry";
+  else if (network === "matic")
+    return "https://api.thegraph.com/subgraphs/name/rainprotocol/interpreter-registry-polygon";
+  else throw new Error("Unsupported network.")
+}
+
+const getABIPayload = (meta: any[]): any => {
+  for(let i=0; i< meta.length; i++){
+    const magicNumber = meta[i].get(1);
+    if(magicNumber == MAGIC_NUMBERS.SOLIDITY_ABIV2) return meta[i].get(0);
+  }
+}
+
+const checkMeta = async (network: string, contract: string): Promise<number> => {
+  const subgraphEndpoint = getSubgraph(network);
+  const supgraph = createApolloFetch({uri: subgraphEndpoint});
+
+  const query = `{
+    contract(id: "${contract.toLowerCase()}") {
+      meta {
+        metaBytes
+      }
+      deployTransaction {
+        blockNumber
+      }
+    }
+  }`;
+
+  const response = (await supgraph({query})) as FetchResult;
+  const data = response.data.contract;
+  if (data == null) throw new Error(`Contract ${contract} not available on ${network}`);
+  
+  const decoded = decodeRainMetaDocument(data.meta.metaBytes)
+  const onchainABI = JSON.parse(inflateJson(getABIPayload(decoded)));
+  const localABI = artifacts.readArtifactSync("OrderBook").abi;
+  
+  let onchainEvents = [];
+  let localEvents = [];
+  
+  for(let i=0;i<onchainABI.length;i++){
+    const type = onchainABI[i].type;
+    if (type == "event") {
+      onchainEvents.push(onchainABI[i])
+    }
+  }
+
+  for(let i=0;i<localABI.length;i++){
+    const type = localABI[i].type;
+    if (type == "event") {
+      localEvents.push(onchainABI[i])
+    }
+  }
+
+  if (JSON.stringify(onchainEvents) == JSON.stringify(localEvents)){
+    console.log("Contract ABI Matches with Local ABI");
+    return data.deployTransaction.blockNumber
+  } else {
+    throw new Error("Contract ABI doesn't match with onchain ABI");
+  }
+}
+
 
 const main = async () => {
   program
     .requiredOption("--contractAddress <string>", "Smart contract address")
     .requiredOption(
       "--network <string>",
-      "Block Number to start indexing from.",
-    )
-    .requiredOption(
-      "--blockNumber <string>",
       "Block Number to start indexing from.",
     )
     .requiredOption(
@@ -88,7 +151,7 @@ const main = async () => {
 
   const _network = options.network;
   const _contractAddress = options.contractAddress;
-  const _blockNumber = options.blockNumber;
+  const _blockNumber = await checkMeta(_network, _contractAddress);
   const _graphAccessToken = options.graphAccessToken;
   const _subgraphName = options.subgraphName;
   const _endpoint = "--node https://api.thegraph.com/deploy/";

@@ -30,11 +30,10 @@ import {
   JSONValueKind,
   TypedMap,
   json,
-  log,
 } from "@graphprotocol/graph-ts";
 
 import {
-  BDtoBIMultiplyer,
+  BDtoBIMultiplier,
   RAIN_META_DOCUMENT_HEX,
   createAccount,
   createOrder,
@@ -147,7 +146,6 @@ export function handleAddOrder(event: AddOrder): void {
     output.order = orderHashHex;
     output.tokenVault = tokenVault.id;
     output.save();
-
 
     // Use the OrderString class to generate a Order JSON string compatible value
     const orderString = new OrderString(orderParam);
@@ -501,7 +499,7 @@ export function handleTakeOrder(event: TakeOrder): void {
     ].token
   );
 
-  let multiplier = BDtoBIMultiplyer(
+  let multiplier = BDtoBIMultiplier(
     orderEntity.inputDisplay,
     orderEntity.outputDisplay
   );

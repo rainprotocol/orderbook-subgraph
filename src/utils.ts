@@ -333,9 +333,15 @@ export function gcd(a: BigInt, b: BigInt): BigInt {
   }
 }
 
-export function BDtoBIMultiplyer(n1: BigDecimal, n2: BigDecimal): BigInt {
+export function BDtoBIMultiplier(n1: BigDecimal, n2: BigDecimal): BigInt {
+  let n1_split = n1.toString().split(".");
+  let n1_decimals = n1_split.length == 1 ? 0 : n1_split[1].length;
+
+  let n2_split = n2.toString().split(".");
+  let n2_decimals = n2_split.length == 1 ? 0 : n2_split[1].length;
+
   let number: BigDecimal;
-  if (n1 < n2) {
+  if (n1_decimals > n2_decimals) {
     number = n1;
   } else {
     number = n2;
