@@ -33,6 +33,7 @@ import {
 } from "@graphprotocol/graph-ts";
 
 import {
+  BDtoBIMultiplier,
   RAIN_META_DOCUMENT_HEX,
   createAccount,
   createOrder,
@@ -44,6 +45,7 @@ import {
   createVault,
   createVaultDeposit,
   createVaultWithdraw,
+  gcd,
   getEvenHex,
   getKeccak256FromBytes,
   getOB,
@@ -85,15 +87,6 @@ export function handleAddOrder(event: AddOrder): void {
       orderParam.validInputs[i].vaultId.toString(),
       orderParam.owner
     );
-    let input = new IO(
-      `${orderHashHex}-${token.id.toHex()}-${orderParam.validInputs[i].vaultId}`
-    );
-    input.token = token.id;
-    input.decimals = orderParam.validInputs[i].decimals;
-    input.vault = vault.id;
-    input.order = orderHashHex;
-    input.save();
-
     let tokenVault = createTokenVault(
       orderParam.validInputs[i].vaultId.toString(),
       event.params.sender,
@@ -107,6 +100,16 @@ export function handleAddOrder(event: AddOrder): void {
       tokenVault.save();
     }
 
+    let input = new IO(
+      `${orderHashHex}-${token.id.toHex()}-${orderParam.validInputs[i].vaultId}`
+    );
+    input.token = token.id;
+    input.decimals = orderParam.validInputs[i].decimals;
+    input.vault = vault.id;
+    input.order = orderHashHex;
+    input.tokenVault = tokenVault.id;
+    input.save();
+
     // Add the input to the order entity
     const auxInput = order.validInputs;
     if (auxInput) if (!auxInput.includes(input.id)) auxInput.push(input.id);
@@ -119,17 +122,6 @@ export function handleAddOrder(event: AddOrder): void {
       orderParam.validOutputs[i].vaultId.toString(),
       orderParam.owner
     );
-    let output = new IO(
-      `${orderHashHex}-${token.id.toHex()}-${
-        orderParam.validOutputs[i].vaultId
-      }`
-    );
-    output.token = token.id;
-    output.decimals = orderParam.validOutputs[i].decimals;
-    output.vault = vault.id;
-    output.order = orderHashHex;
-    output.save();
-
     let tokenVault = createTokenVault(
       orderParam.validOutputs[i].vaultId.toString(),
       event.params.sender,
@@ -142,6 +134,18 @@ export function handleAddOrder(event: AddOrder): void {
       tokenVault.orders = orders;
       tokenVault.save();
     }
+
+    let output = new IO(
+      `${orderHashHex}-${token.id.toHex()}-${
+        orderParam.validOutputs[i].vaultId
+      }`
+    );
+    output.token = token.id;
+    output.decimals = orderParam.validOutputs[i].decimals;
+    output.vault = vault.id;
+    output.order = orderHashHex;
+    output.tokenVault = tokenVault.id;
+    output.save();
 
     // Use the OrderString class to generate a Order JSON string compatible value
     const orderString = new OrderString(orderParam);
@@ -483,17 +487,35 @@ export function handleTakeOrder(event: TakeOrder): void {
   orderEntity.input = event.params.input;
   orderEntity.inputDisplay = toDisplay(
     event.params.input,
-    event.params.config.order.validInputs[
-      event.params.config.inputIOIndex.toI32()
+    event.params.config.order.validOutputs[
+      event.params.config.outputIOIndex.toI32()
     ].token
   );
   orderEntity.output = event.params.output;
   orderEntity.outputDisplay = toDisplay(
     event.params.output,
-    event.params.config.order.validOutputs[
-      event.params.config.outputIOIndex.toI32()
+    event.params.config.order.validInputs[
+      event.params.config.inputIOIndex.toI32()
     ].token
   );
+
+  let multiplier = BDtoBIMultiplier(
+    orderEntity.inputDisplay,
+    orderEntity.outputDisplay
+  );
+
+  let input = BigInt.fromString(
+    orderEntity.inputDisplay.times(multiplier.toBigDecimal()).toString()
+  );
+  let output = BigInt.fromString(
+    orderEntity.outputDisplay.times(multiplier.toBigDecimal()).toString()
+  );
+
+  let GCD = gcd(input, output);
+
+  orderEntity.inputRatio = input.div(GCD).toString();
+  orderEntity.outputRatio = output.div(GCD).toString();
+
   orderEntity.inputIOIndex = event.params.config.inputIOIndex;
   orderEntity.outputIOIndex = event.params.config.outputIOIndex;
   orderEntity.inputToken = createToken(
@@ -512,62 +534,56 @@ export function handleTakeOrder(event: TakeOrder): void {
   ).id;
   orderEntity.emitter = createAccount(event.params.sender).id;
   orderEntity.timestamp = event.block.timestamp;
-  orderEntity.save(); 
+  orderEntity.save();
 
-  // Updating Balance 
+  // Updating Balance
 
-  let order = event.params.config.order  ;  
+  let order = event.params.config.order;
 
   // IO Index values used to takeOrder
   const inputIOIndex = event.params.config.inputIOIndex.toI32();
-  const outputIOIndex = event.params.config.outputIOIndex.toI32(); 
-  
-  // Valid inputs/outpus based on the Index used 
+  const outputIOIndex = event.params.config.outputIOIndex.toI32();
+
+  // Valid inputs/outpus based on the Index used
   const inputValues = order.validInputs[inputIOIndex];
-  const outputValues = order.validOutputs[outputIOIndex];  
+  const outputValues = order.validOutputs[outputIOIndex];
 
-  // Token input/output based on the Index used 
+  // Token input/output based on the Index used
   const tokenInput = inputValues.token;
-  const tokenOutput = outputValues.token;  
+  const tokenOutput = outputValues.token;
 
-  // Vault IDs input/output based on the Index used 
+  // Vault IDs input/output based on the Index used
   const vaultInput = inputValues.vaultId;
-  const vaultOutput = outputValues.vaultId; 
-
+  const vaultOutput = outputValues.vaultId;
 
   const tokenVaultInput = `${vaultInput.toString()}-${order.owner.toHex()}-${tokenInput.toHex()}`;
-  const tokenVaultOutput = `${vaultOutput.toString()}-${order.owner.toHex()}-${tokenOutput.toHex()}`; 
+  const tokenVaultOutput = `${vaultOutput.toString()}-${order.owner.toHex()}-${tokenOutput.toHex()}`;
 
   // Updating order input/output balance
   const orderTokenVaultInput = TokenVault.load(tokenVaultInput);
   if (orderTokenVaultInput) {
-    orderTokenVaultInput.balance =
-      orderTokenVaultInput.balance.plus(event.params.output);
+    orderTokenVaultInput.balance = orderTokenVaultInput.balance.plus(
+      event.params.output
+    );
     orderTokenVaultInput.balanceDisplay = toDisplay(
       orderTokenVaultInput.balance,
       orderTokenVaultInput.token
     );
     orderTokenVaultInput.save();
-  } 
+  }
 
   // Updating order input/output balance
   const orderTokenVaultOutput = TokenVault.load(tokenVaultOutput);
   if (orderTokenVaultOutput) {
-    orderTokenVaultOutput.balance =
-      orderTokenVaultOutput.balance.minus(event.params.input);
+    orderTokenVaultOutput.balance = orderTokenVaultOutput.balance.minus(
+      event.params.input
+    );
     orderTokenVaultOutput.balanceDisplay = toDisplay(
       orderTokenVaultOutput.balance,
       orderTokenVaultOutput.token
     );
     orderTokenVaultOutput.save();
   }
-
-
-
-
-
-
-
 }
 
 export function handleWithdraw(event: Withdraw): void {

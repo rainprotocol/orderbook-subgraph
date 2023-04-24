@@ -46,7 +46,7 @@ let
     npx hardhat test
   '';
 
-  install-submodules = pkgs.writeShellScriptBin "install-submodules" ''
+install-submodules = pkgs.writeShellScriptBin "install-submodules" ''
     mkdir -p lib
 
     git -C lib pull  https://github.com/foundry-rs/forge-std.git
@@ -134,6 +134,7 @@ let
     mkdir -p schema && cp -r node_modules/@rainprotocol/rain-protocol/schema .
     mkdir -p utils && cp -r node_modules/@rainprotocol/rain-protocol/utils .
     cp node_modules/@rainprotocol/rain-protocol/foundry.toml .
+    mkdir -p contracts/test/orderbook && cp sg_test_contracts/*.sol contracts/test/orderbook/
     install-submodules
     compile
     copy-abis

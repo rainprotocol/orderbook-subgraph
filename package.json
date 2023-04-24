@@ -1,5 +1,5 @@
 {
-  "name": "@rainprotocol/sol.orderbook",
+  "name": "@rainprotocol/orderbook-subgraph",
   "description": "orderbook subgraph",
   "version": "0.0.1",
   "author": "rainprotocol",

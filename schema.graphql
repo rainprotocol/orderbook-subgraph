@@ -82,6 +82,7 @@ type IO @entity {
   decimals: Int!
   vault: Vault!
   order: Order!
+  tokenVault: TokenVault!
 }
 
 # Created and updated whenever an AddOrder event occurs
@@ -274,6 +275,12 @@ type TakeOrderEntity implements Event @entity {
   output: BigInt!
   outputDisplay: BigDecimal!
 
+  "Input Ratio"
+  inputRatio: String!
+
+  "Output Ratio"
+  outputRatio: String!
+  
   "The index of the input token in order to match with the take order output."
   inputIOIndex: BigInt! # index of input token for Input Token Array
   "The index of the output token in `order` to match with the take order input."

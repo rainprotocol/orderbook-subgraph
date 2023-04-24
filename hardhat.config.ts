@@ -79,11 +79,5 @@ const config: HardhatUserConfig = {
   paths: {
     tests: MOCHA_TESTS_PATH,
   },
-  // verificationApi: {
-  //   mumbai: {
-  //     apiKey: process.env["POLYGONSCAN_KEY"],
-  //     apiUrl: "https://api-testnet.polygonscan.com/api",
-  //   },
-  // },
 };
 export default config;
