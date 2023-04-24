@@ -108,7 +108,7 @@ const checkMeta = async (network: string, contract: string): Promise<number> => 
   for(let i=0;i<localABI.length;i++){
     const type = localABI[i].type;
     if (type == "event") {
-      localEvents.push(onchainABI[i])
+      localEvents.push(localABI[i])
     }
   }
 
