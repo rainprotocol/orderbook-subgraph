@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.18;
 
-import "rain.interface.orderbook/IOrderBookV2.sol";
+import "rain.interface.orderbook/IOrderBookV1.sol";
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "hardhat/console.sol";
@@ -11,8 +11,8 @@ struct MultiClear {
     Order alice_;
     Order bob_;
     ClearConfig clearConfig_;
-    SignedContextV1[] aliceSignedContext_;
-    SignedContextV1[] bobSignedContext_;
+    SignedContext[] aliceSignedContext_;
+    SignedContext[] bobSignedContext_;
 }
 
 /// @title OBMultiTx
@@ -21,9 +21,9 @@ struct MultiClear {
 contract OBMultiTx {
     using SafeERC20 for IERC20;
 
-    IOrderBookV2 public immutable OBContract;
+    IOrderBookV1 public immutable OBContract;
 
-    constructor(IOrderBookV2 OBContract_) {
+    constructor(IOrderBookV1 OBContract_) {
         OBContract = OBContract_;
     }
 

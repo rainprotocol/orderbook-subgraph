@@ -95,20 +95,21 @@ const checkMeta = async (network: string, contract: string): Promise<number> => 
   const onchainABI = JSON.parse(inflateJson(getABIPayload(decoded)));
   const localABI = artifacts.readArtifactSync("OrderBook").abi;
   
-  let onchainEvents = [];
-  let localEvents = [];
+  let onchainEvents: any[] = [];
+  let localEvents: any[] = [];
   
   for(let i=0;i<onchainABI.length;i++){
     const type = onchainABI[i].type;
     if (type == "event") {
       onchainEvents.push(onchainABI[i])
+      if( onchainABI[i].name == "TakeOrder") console.log(JSON.stringify(onchainABI[i], null, 2))
     }
   }
 
   for(let i=0;i<localABI.length;i++){
     const type = localABI[i].type;
     if (type == "event") {
-      localEvents.push(onchainABI[i])
+      localEvents.push(localABI[i])
     }
   }
 
