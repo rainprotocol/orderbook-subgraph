@@ -86,7 +86,6 @@ install-submodules = pkgs.writeShellScriptBin "install-submodules" ''
     git -C lib/sol.metadata checkout fdb9a5f
     
     forge install --root lib/forge-std
-    forge install --root lib/openzeppelin-contracts
     forge install --root lib/rain.cooldown
     forge install --root lib/sol.lib.binmaskflag
     forge install --root lib/sol.metadata
@@ -99,7 +98,6 @@ install-submodules = pkgs.writeShellScriptBin "install-submodules" ''
     forge install --root lib/rain.interface.orderbook
 
     forge build --root lib/forge-std
-    forge build --root lib/openzeppelin-contracts
     forge build --root lib/rain.cooldown
     forge build --root lib/sol.lib.binmaskflag
     forge build --root lib/sol.metadata
