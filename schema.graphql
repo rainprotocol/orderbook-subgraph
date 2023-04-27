@@ -276,10 +276,10 @@ type TakeOrderEntity implements Event @entity {
   outputDisplay: BigDecimal!
 
   "Input Ratio"
-  inputRatio: String!
+  inputRatio: BigDecimal!
 
   "Output Ratio"
-  outputRatio: String!
+  outputRatio: BigDecimal!
   
   "The index of the input token in order to match with the take order output."
   inputIOIndex: BigInt! # index of input token for Input Token Array

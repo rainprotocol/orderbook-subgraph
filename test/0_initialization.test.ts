@@ -27,7 +27,6 @@ before(async () => {
   // Making available the Registry (EIP-1820) on local network
   signers = await ethers.getSigners();
   await deploy1820(signers[0]);
-
   orderBook = await deployOrderBook();
 
   const configPath = path.resolve(__dirname, "../config/localhost.json");
