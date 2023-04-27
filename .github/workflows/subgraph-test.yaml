@@ -63,9 +63,3 @@ jobs:
 
       - name: Graph Deployments polygon
         run: npx graph deploy --product hosted-service rainprotocol/orderbook-polygon
-
-      - name: Prepare subgraph manifest for mumbai
-        run: nix-shell --run ci-prepare-subgraph-mumbai
-
-      - name: Graph Deployments mumbai
-        run: npx graph deploy --product hosted-service rainprotocol/orderbook-mumbai

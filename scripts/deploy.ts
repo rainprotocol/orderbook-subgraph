@@ -62,6 +62,8 @@ const getSubgraph = (network: string): string => {
     return "https://api.thegraph.com/subgraphs/name/rainprotocol/interpreter-registry";
   else if (network === "matic")
     return "https://api.thegraph.com/subgraphs/name/rainprotocol/interpreter-registry-polygon";
+  else if (network == "mainnet")
+    return "https://api.thegraph.com/subgraphs/name/rainprotocol/interpreter-registry-ethereum";
   else throw new Error("Unsupported network.")
 }
 
@@ -108,7 +110,7 @@ const checkMeta = async (network: string, contract: string): Promise<number> => 
   for(let i=0;i<localABI.length;i++){
     const type = localABI[i].type;
     if (type == "event") {
-      localEvents.push(onchainABI[i])
+      localEvents.push(localABI[i])
     }
   }
 
