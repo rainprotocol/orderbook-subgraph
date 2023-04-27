@@ -24,6 +24,7 @@ import {
   ClearAliceStruct,
 } from "../generated/OrderBook/OrderBook";
 import {
+  BigDecimal,
   BigInt,
   Bytes,
   JSONValue,
@@ -513,8 +514,11 @@ export function handleTakeOrder(event: TakeOrder): void {
 
   let GCD = gcd(input, output);
 
-  orderEntity.inputRatio = input.div(GCD).toString();
-  orderEntity.outputRatio = output.div(GCD).toString();
+  let inputRatio = input.div(GCD).toBigDecimal();
+  let outputRatio = output.div(GCD).toBigDecimal();
+
+  orderEntity.inputRatio = BigDecimal.fromString("1.0");
+  orderEntity.outputRatio = outputRatio.div(inputRatio);
 
   orderEntity.inputIOIndex = event.params.config.inputIOIndex;
   orderEntity.outputIOIndex = event.params.config.outputIOIndex;
