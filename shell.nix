@@ -17,6 +17,7 @@ let
   '';
 
   docker-up = pkgs.writeShellScriptBin "docker-up" ''
+    rm -rf docker/data
     docker-compose -f docker/docker-compose.yml up --build -d
   '';
 
@@ -38,6 +39,7 @@ let
     rm -rf utils
     rm -rf out
     rm -rf foundry.toml
+    rm -rf docker/data
   '';
 
   ci-test = pkgs.writeShellScriptBin "ci-test" ''

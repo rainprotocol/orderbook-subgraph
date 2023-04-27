@@ -485,14 +485,14 @@ export function handleTakeOrder(event: TakeOrder): void {
   orderEntity.order = createOrder(
     changetype<ClearAliceStruct>(event.params.config.order)
   ).id;
-  orderEntity.output = event.params.input;
+  orderEntity.input = event.params.input;
   orderEntity.outputDisplay = toDisplay(
     event.params.input,
     event.params.config.order.validOutputs[
       event.params.config.outputIOIndex.toI32()
     ].token
   );
-  orderEntity.input = event.params.output;
+  orderEntity.output = event.params.output;
   orderEntity.inputDisplay = toDisplay(
     event.params.output,
     event.params.config.order.validInputs[
@@ -500,34 +500,33 @@ export function handleTakeOrder(event: TakeOrder): void {
     ].token
   );
 
-  let multiplier = BDtoBIMultiplier(
-    orderEntity.inputDisplay,
-    orderEntity.outputDisplay
-  );
+  // let multiplier = BDtoBIMultiplier(
+  //   orderEntity.inputDisplay,
+  //   orderEntity.outputDisplay
+  // );
 
-  let input = BigInt.fromString(
-    orderEntity.inputDisplay.times(multiplier.toBigDecimal()).toString()
-  );
-  let output = BigInt.fromString(
-    orderEntity.outputDisplay.times(multiplier.toBigDecimal()).toString()
-  );
+  // let input = BigInt.fromString(
+  //   orderEntity.inputDisplay.times(multiplier.toBigDecimal()).toString()
+  // );
+  // let output = BigInt.fromString(
+  //   orderEntity.outputDisplay.times(multiplier.toBigDecimal()).toString()
+  // );
 
-  let GCD = gcd(input, output);
+  // let GCD = gcd(input, output);
 
-  let inputRatio = input.div(GCD).toBigDecimal();
-  let outputRatio = output.div(GCD).toBigDecimal();
+  // let inputRatio = input.div(GCD).toBigDecimal();
+  // let outputRatio = output.div(GCD).toBigDecimal();
 
-  orderEntity.outputRatio = BigDecimal.fromString("1.0");
-  orderEntity.inputRatio = inputRatio.div(outputRatio);
+  orderEntity.IORatio = orderEntity.inputDisplay.div(orderEntity.outputDisplay);
 
-  orderEntity.inputIOIndex = event.params.config.outputIOIndex;
-  orderEntity.outputIOIndex = event.params.config.inputIOIndex;
-  orderEntity.outputToken = createToken(
+  orderEntity.inputIOIndex = event.params.config.inputIOIndex;
+  orderEntity.outputIOIndex = event.params.config.outputIOIndex;
+  orderEntity.inputToken = createToken(
     event.params.config.order.validInputs[
       event.params.config.inputIOIndex.toI32()
     ].token
   ).id;
-  orderEntity.inputToken = createToken(
+  orderEntity.outputToken = createToken(
     event.params.config.order.validOutputs[
       event.params.config.outputIOIndex.toI32()
     ].token
@@ -545,12 +544,12 @@ export function handleTakeOrder(event: TakeOrder): void {
   let order = event.params.config.order;
 
   // IO Index values used to takeOrder
-  const inputIOIndex = event.params.config.outputIOIndex.toI32();
-  const outputIOIndex = event.params.config.inputIOIndex.toI32();
+  const inputIOIndex = event.params.config.inputIOIndex.toI32();
+  const outputIOIndex = event.params.config.outputIOIndex.toI32();
 
   // Valid inputs/outpus based on the Index used
-  const inputValues = order.validOutputs[inputIOIndex];
-  const outputValues = order.validInputs[outputIOIndex];
+  const inputValues = order.validInputs[inputIOIndex];
+  const outputValues = order.validOutputs[outputIOIndex];
 
   // Token input/output based on the Index used
   const tokenInput = inputValues.token;
