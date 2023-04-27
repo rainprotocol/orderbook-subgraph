@@ -17,6 +17,7 @@ let
   '';
 
   docker-up = pkgs.writeShellScriptBin "docker-up" ''
+    rm -rf docker/data
     docker-compose -f docker/docker-compose.yml up --build -d
   '';
 
@@ -38,6 +39,7 @@ let
     rm -rf utils
     rm -rf out
     rm -rf foundry.toml
+    rm -rf docker/data
   '';
 
   ci-test = pkgs.writeShellScriptBin "ci-test" ''
@@ -60,7 +62,7 @@ install-submodules = pkgs.writeShellScriptBin "install-submodules" ''
     git -C lib clone https://github.com/rainprotocol/rain.math.fixedpoint.git 
     git -C lib clone https://github.com/rainprotocol/rain.math.saturating.git 
     git -C lib clone https://github.com/rainprotocol/sol.lib.binmaskflag.git
-    git -C lib clone https://github.com/rainprotocol/sol.lib.datacontract.git.git  
+    git -C lib clone https://github.com/rainprotocol/sol.lib.datacontract.git
     git -C lib clone https://github.com/rainprotocol/sol.lib.memory.git 
     git -C lib clone https://github.com/rainprotocol/sol.metadata.git 
 
@@ -85,7 +87,7 @@ install-submodules = pkgs.writeShellScriptBin "install-submodules" ''
     git -C lib/openzeppelin-contracts checkout d00acef
     git -C lib/rain.cooldown checkout 621c02d
     git -C lib/rain.interface.factory checkout 25458fb
-    git -C lib/rain.interface.flow checkout 13c83d1
+    git -C lib/rain.interface.flow checkout 18f03ba
     git -C lib/rain.interface.interpreter checkout 6fd8c01
     git -C lib/rain.interface.orderbook checkout 6a8fb8a
     git -C lib/rain.interface.sale checkout 4447076

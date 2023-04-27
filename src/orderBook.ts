@@ -500,25 +500,24 @@ export function handleTakeOrder(event: TakeOrder): void {
     ].token
   );
 
-  let multiplier = BDtoBIMultiplier(
-    orderEntity.inputDisplay,
-    orderEntity.outputDisplay
-  );
+  // let multiplier = BDtoBIMultiplier(
+  //   orderEntity.inputDisplay,
+  //   orderEntity.outputDisplay
+  // );
 
-  let input = BigInt.fromString(
-    orderEntity.inputDisplay.times(multiplier.toBigDecimal()).toString()
-  );
-  let output = BigInt.fromString(
-    orderEntity.outputDisplay.times(multiplier.toBigDecimal()).toString()
-  );
+  // let input = BigInt.fromString(
+  //   orderEntity.inputDisplay.times(multiplier.toBigDecimal()).toString()
+  // );
+  // let output = BigInt.fromString(
+  //   orderEntity.outputDisplay.times(multiplier.toBigDecimal()).toString()
+  // );
 
-  let GCD = gcd(input, output);
+  // let GCD = gcd(input, output);
 
-  let inputRatio = input.div(GCD).toBigDecimal();
-  let outputRatio = output.div(GCD).toBigDecimal();
+  // let inputRatio = input.div(GCD).toBigDecimal();
+  // let outputRatio = output.div(GCD).toBigDecimal();
 
-  orderEntity.inputRatio = BigDecimal.fromString("1.0");
-  orderEntity.outputRatio = outputRatio.div(inputRatio);
+  orderEntity.IORatio = orderEntity.inputDisplay.div(orderEntity.outputDisplay);
 
   orderEntity.inputIOIndex = event.params.config.inputIOIndex;
   orderEntity.outputIOIndex = event.params.config.outputIOIndex;
