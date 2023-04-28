@@ -17,6 +17,7 @@ let
   '';
 
   docker-up = pkgs.writeShellScriptBin "docker-up" ''
+    rm -rf docker/data
     docker-compose -f docker/docker-compose.yml up --build -d
   '';
 
@@ -60,7 +61,7 @@ install-submodules = pkgs.writeShellScriptBin "install-submodules" ''
     git -C lib clone https://github.com/rainprotocol/rain.math.fixedpoint.git 
     git -C lib clone https://github.com/rainprotocol/rain.math.saturating.git 
     git -C lib clone https://github.com/rainprotocol/sol.lib.binmaskflag.git
-    git -C lib clone https://github.com/rainprotocol/sol.lib.datacontract.git.git  
+    git -C lib clone https://github.com/rainprotocol/sol.lib.datacontract.git  
     git -C lib clone https://github.com/rainprotocol/sol.lib.memory.git 
     git -C lib clone https://github.com/rainprotocol/sol.metadata.git 
 
