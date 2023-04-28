@@ -62,6 +62,8 @@ const getSubgraph = (network: string): string => {
     return "https://api.thegraph.com/subgraphs/name/rainprotocol/interpreter-registry";
   else if (network === "matic")
     return "https://api.thegraph.com/subgraphs/name/rainprotocol/interpreter-registry-polygon";
+  else if (network == "mainnet")
+    return "https://api.thegraph.com/subgraphs/name/rainprotocol/interpreter-registry-ethereum";
   else throw new Error("Unsupported network.")
 }
 
