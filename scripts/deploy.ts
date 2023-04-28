@@ -44,7 +44,7 @@ const writeFile = (_path: string, file: any): void => {
 
 const getRPCURL = (network: string): string => {
   if(network == "mumbai") return "https://rpc-mumbai.maticvigil.com";
-  if(network == "mainnet") return "https://eth.llamarpc.com";
+  if(network == "mainnet") return "https://1rpc.io/eth";
   if(network == "goerli") return "https://rpc.ankr.com/eth_goerli";
   if(network == "matic") return "https://polygon-rpc.com";
   return "http://localhost:8545"
