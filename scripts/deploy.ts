@@ -159,11 +159,9 @@ const main = async () => {
 
   // Add the address to the subgraph.yaml file
 
-  exec(`npx graph auth --product hosted-service ${_graphAccessToken}`)
-
   let config = { orderbook: _contractAddress, blockNumber: _blockNumber, network: _network };
 
-  writeFile(path.resolve(__dirname, `../config/${_network}.json`) ,JSON.stringify(config, null, 2))
+  writeFile(path.resolve(__dirname, `../config/${_network}.json`) ,JSON.stringify(config, null, 2));
 
   exec(
     `npx mustache config/${_network}.json ${_subgraphTemplate} subgraph.yaml`
@@ -171,6 +169,9 @@ const main = async () => {
 
   // Generate all teh SG code
   exec("npx graph codegen && npx graph build");
+
+  // Graph Authentication
+  exec(`npx graph auth --product hosted-service ${_graphAccessToken}`);
 
   // Deploy the Subgraph
   exec(
