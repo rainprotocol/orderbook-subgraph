@@ -109,6 +109,7 @@ export function handleAddOrder(event: AddOrder): void {
     input.vault = vault.id;
     input.order = orderHashHex;
     input.tokenVault = tokenVault.id;
+    input.index = i;
     input.save();
 
     // Add the input to the order entity
@@ -146,6 +147,7 @@ export function handleAddOrder(event: AddOrder): void {
     output.vault = vault.id;
     output.order = orderHashHex;
     output.tokenVault = tokenVault.id;
+    output.index = i;
     output.save();
 
     // Use the OrderString class to generate a Order JSON string compatible value

@@ -83,6 +83,7 @@ type IO @entity {
   vault: Vault!
   order: Order!
   tokenVault: TokenVault!
+  index: Int!
 }
 
 # Created and updated whenever an AddOrder event occurs
