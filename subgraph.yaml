@@ -4,11 +4,11 @@ schema:
 dataSources:
   - kind: ethereum/contract
     name: OrderBook
-    network: matic
+    network: localhost
     source:
-      address: "0x2de560ED9Ba8a6CDFe92e26862Ecb86e6e2d9705"
+      address: "0x75c68e69775fA3E9DD38eA32E554f6BF259C1135"
       abi: OrderBook
-      startBlock: 41785697
+      startBlock: 405
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -51,7 +51,7 @@ dataSources:
 templates: 
   - kind: ethereum/contract
     name: ERC20Template
-    network: matic
+    network: localhost
     source:
       abi: ReserveToken
     mapping:
