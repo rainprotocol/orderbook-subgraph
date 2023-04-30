@@ -123,6 +123,7 @@ describe("IO entity", () => {
           order {
             id
           }
+          index
         }
       }`;
 
@@ -133,6 +134,7 @@ describe("IO entity", () => {
       assert.equal(data.token.id, IOToken, "wrong token ID on IO");
       assert.equal(data.vault.id, vault_ID, "wrong vault ID on IO");
       assert.equal(data.order.id, orderHash, "wrong order ID on IO");
+      assert.equal(data.index, 0, "wrong index on IO");
     }
   });
 
@@ -227,6 +229,7 @@ describe("IO entity", () => {
           order {
             id
           }
+          index
         }
       }`;
 
@@ -237,6 +240,7 @@ describe("IO entity", () => {
       assert.equal(data.token.id, IOToken, "wrong token ID on IO");
       assert.equal(data.vault.id, vault_ID, "wrong vault ID on IO");
       assert.equal(data.order.id, orderHash, "wrong order ID on IO");
+      assert.equal(data.index, 0, "wrong index on IO");
     }
   });
 });
