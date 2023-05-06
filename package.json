@@ -56,7 +56,7 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-promise": "^6.1.1",
-    "rainlang": "rainprotocol/rainlang#58a5deee3e7d28058c0a7be8d6e8e51f9021326e",
+    "@rainprotocol/rainlang": "^2.2.2",
     "string-math": "=1.2.2",
     "ts-node": "^10.9.1",
     "typechain": "^8.1.1",
