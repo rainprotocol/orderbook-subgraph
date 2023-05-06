@@ -83,21 +83,21 @@ install-submodules = pkgs.writeShellScriptBin "install-submodules" ''
     git submodule add https://github.com/rainprotocol/rain.interface.sale.git lib/rain.interface.sale
     
 
-    git -C lib/forge-std checkout 2b58ecb
-    git -C lib/openzeppelin-contracts checkout d00acef
+    git -C lib/forge-std checkout 73d44ec
+    git -C lib/openzeppelin-contracts checkout 0a25c19
     git -C lib/rain.cooldown checkout 621c02d
     git -C lib/rain.interface.factory checkout 25458fb
     git -C lib/rain.interface.flow checkout 18f03ba
-    git -C lib/rain.interface.interpreter checkout 6fd8c01
+    git -C lib/rain.interface.interpreter checkout 7686010
     git -C lib/rain.interface.orderbook checkout 6a8fb8a
     git -C lib/rain.interface.sale checkout 4447076
     git -C lib/rain.lib.typecast checkout 4ad548b
     git -C lib/rain.math.fixedpoint checkout 5fa24ac
     git -C lib/rain.math.saturating checkout 8d8406a
-    git -C lib/sol.lib.binmaskflag checkout 214473a
+    git -C lib/sol.lib.binmaskflag checkout c0feff9
     git -C lib/sol.lib.datacontract checkout 252093f
-    git -C lib/sol.lib.memory checkout d0287d0
-    git -C lib/sol.metadata checkout fdb9a5f
+    git -C lib/sol.lib.memory checkout ec90bfa
+    git -C lib/sol.metadata checkout 5b245ea
     
     forge install --root lib/forge-std
     forge install --root lib/openzeppelin-contracts
