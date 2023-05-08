@@ -91,9 +91,11 @@ export function createAccount(address: Bytes): Account {
   return account;
 }
 
-export function createToken(address: Bytes): ERC20 {
+export function createToken(address: string): ERC20 {
   let token = ERC20.load(address);
-  let reserveToken = ReserveToken.bind(Address.fromBytes(address));
+  let reserveToken = ReserveToken.bind(
+    Address.fromBytes(Bytes.fromHexString(address))
+  );
   if (!token) {
     token = new ERC20(address);
 
@@ -136,7 +138,7 @@ export function createTokenVault(
   if (!tokenVault) {
     tokenVault = new TokenVault(`${vaultId}-${owner.toHex()}-${token.toHex()}`);
     tokenVault.owner = createAccount(owner).id;
-    tokenVault.token = createToken(token).id;
+    tokenVault.token = createToken(token.toHex()).id;
     tokenVault.balance = BigInt.zero();
     tokenVault.balanceDisplay = BigDecimal.zero();
     tokenVault.vault = createVault(vaultId, owner).id;
@@ -308,7 +310,7 @@ export function createTransaction(
   return transaction;
 }
 
-export function toDisplay(amount: BigInt, token: Bytes): BigDecimal {
+export function toDisplay(amount: BigInt, token: string): BigDecimal {
   let erc20 = createToken(token);
   if (erc20) {
     let denominator = BigInt.fromString(getZeros(erc20.decimals));

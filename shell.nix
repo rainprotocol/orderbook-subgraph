@@ -48,7 +48,7 @@ let
     npx hardhat test
   '';
 
-install-submodules = pkgs.writeShellScriptBin "install-submodules" ''
+  install-submodules = pkgs.writeShellScriptBin "install-submodules" ''
     mkdir -p lib
     git -C lib clone https://github.com/foundry-rs/forge-std.git
     git -C lib clone https://github.com/OpenZeppelin/openzeppelin-contracts.git
