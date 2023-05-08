@@ -24,6 +24,10 @@ jobs:
         run: |
           nix-shell --run init
 
+      - name: Git Sumbodule Update
+        run: |
+          git pull --recurse-submodules
+
       - name: Build Docker Compose images
         run: |
           nix-shell --run docker-down
