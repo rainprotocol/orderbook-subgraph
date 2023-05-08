@@ -13,9 +13,9 @@ import {
   max_uint256,
   minBN,
   randomUint256,
-} from "../utils";
+} from "../rain-protocol/utils";
 import { ethers } from "hardhat";
-import { encodeMeta, getOrderConfig } from "../utils/orderBook/order";
+import { encodeMeta, getOrderConfig } from "../rain-protocol/utils/orderBook/order";
 import {
   AddOrderEvent,
   AfterClearEvent,

@@ -8,7 +8,7 @@ import {
   eighteenZeros,
   getEvents,
   randomUint256,
-} from "../utils";
+} from "../rain-protocol/utils";
 import { ethers } from "hardhat";
 import {
   DepositEvent,

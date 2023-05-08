@@ -81,6 +81,7 @@ type IO @entity {
   token: ERC20!
   decimals: Int!
   vault: Vault!
+  vaultId: BigInt!
   order: Order!
   tokenVault: TokenVault!
 }

@@ -16,9 +16,9 @@ import {
   memoryOperand,
   op,
   randomUint256,
-} from "../utils";
+} from "../rain-protocol/utils";
 import { ethers } from "hardhat";
-import { encodeMeta } from "../utils/orderBook/order";
+import { encodeMeta } from "../rain-protocol/utils/orderBook/order";
 import { concat } from "ethers/lib/utils";
 import {
   AddOrderEvent,

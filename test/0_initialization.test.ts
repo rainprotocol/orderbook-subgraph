@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import deploy1820 from "../utils/deploy/registry1820/deploy";
+import deploy1820 from "../rain-protocol/utils/deploy/registry1820/deploy";
 import {
   exec,
   fetchFile,
@@ -8,11 +8,11 @@ import {
   waitForSubgraphToBeSynced,
   writeFile,
 } from "./utils";
-import { zeroAddress } from "../utils";
+import { zeroAddress } from "../rain-protocol/utils";
 import { OrderBook } from "../typechain";
 import assert from "assert";
 import * as path from "path";
-import { deployOrderBook } from "../utils/deploy/orderBook/deploy";
+import { deployOrderBook } from "../rain-protocol/utils/deploy/orderBook/deploy";
 import { ApolloFetch } from "apollo-fetch";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 

@@ -107,6 +107,7 @@ export function handleAddOrder(event: AddOrder): void {
     input.token = token.id;
     input.decimals = orderParam.validInputs[i].decimals;
     input.vault = vault.id;
+    input.vaultId = orderParam.validInputs[i].vaultId;
     input.order = orderHashHex;
     input.tokenVault = tokenVault.id;
     input.save();
@@ -144,6 +145,7 @@ export function handleAddOrder(event: AddOrder): void {
     output.token = token.id;
     output.decimals = orderParam.validOutputs[i].decimals;
     output.vault = vault.id;
+    output.vaultId = orderParam.validOutputs[i].vaultId;
     output.order = orderHashHex;
     output.tokenVault = tokenVault.id;
     output.save();

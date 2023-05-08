@@ -9,9 +9,9 @@ import {
   getEvents,
   max_uint256,
   randomUint256,
-} from "../utils";
+} from "../rain-protocol/utils";
 import { orderBook, signers, subgraph } from "./0_initialization.test";
-import { encodeMeta, getOrderConfig } from "../utils/orderBook/order";
+import { encodeMeta, getOrderConfig } from "../rain-protocol/utils/orderBook/order";
 import {
   AddOrderEvent,
   DepositConfigStruct,
