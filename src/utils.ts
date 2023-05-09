@@ -1,18 +1,14 @@
 import {
   Bytes,
   BigInt,
-  TypedMap,
-  JSONValue,
   Address,
   ethereum,
   crypto,
   BigDecimal,
-  log,
 } from "@graphprotocol/graph-ts";
 import {
   Account,
   ERC20,
-  MetaContentV1,
   Order,
   OrderBook,
   OrderClear,
@@ -49,39 +45,6 @@ export function stringToArrayBuffer(val: string): ArrayBuffer {
   return buff;
 }
 
-export function createMetaContentV1(
-  id: string,
-  metaContentV1Object: TypedMap<string, JSONValue>,
-  document: Bytes
-): MetaContentV1 {
-  let metaContentV1 = MetaContentV1.load(id);
-  if (!metaContentV1) {
-    metaContentV1 = new MetaContentV1(id);
-    metaContentV1.payload = metaContentV1Object.mustGet("0").toString();
-    metaContentV1.magicNumber = BigInt.fromU64(
-      metaContentV1Object.mustGet("1").toU64()
-    );
-    metaContentV1.contentType = metaContentV1Object.mustGet("2").toString();
-    if (metaContentV1Object.isSet("3")) {
-      metaContentV1.contentEncoding = metaContentV1Object
-        .mustGet("3")
-        .toString();
-    }
-    if (metaContentV1Object.isSet("4")) {
-      metaContentV1.contentLanguage = metaContentV1Object
-        .mustGet("4")
-        .toString();
-    }
-    metaContentV1.documents = [];
-  }
-  let documents = metaContentV1.documents;
-  if (documents) documents.push(document);
-  metaContentV1.documents = documents;
-  metaContentV1.save();
-
-  return metaContentV1;
-}
-
 export function createAccount(address: Bytes): Account {
   let account = Account.load(address);
   if (!account) {
@@ -92,10 +55,10 @@ export function createAccount(address: Bytes): Account {
 }
 
 export function createToken(address: Bytes): ERC20 {
-  let token = ERC20.load(address);
+  let token = ERC20.load(address.toHex());
   let reserveToken = ReserveToken.bind(Address.fromBytes(address));
   if (!token) {
-    token = new ERC20(address);
+    token = new ERC20(address.toHex());
 
     let decimals = reserveToken.try_decimals();
     let name = reserveToken.try_name();
@@ -308,8 +271,8 @@ export function createTransaction(
   return transaction;
 }
 
-export function toDisplay(amount: BigInt, token: Bytes): BigDecimal {
-  let erc20 = createToken(token);
+export function toDisplay(amount: BigInt, token: string): BigDecimal {
+  let erc20 = createToken(Address.fromString(token));
   if (erc20) {
     let denominator = BigInt.fromString(getZeros(erc20.decimals));
     return amount.toBigDecimal().div(denominator.toBigDecimal());

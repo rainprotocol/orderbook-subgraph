@@ -13,20 +13,20 @@ import {
   max_uint256,
   minBN,
   randomUint256,
-} from "../rain-protocol/utils";
+} from "../utils";
 import { ethers } from "hardhat";
-import { encodeMeta, getOrderConfig } from "../rain-protocol/utils/orderBook/order";
+import { encodeMeta, getOrderConfig } from "../utils/orderBook/order";
 import {
   AddOrderEvent,
   AfterClearEvent,
   ClearConfigStruct,
   ClearEvent,
   ClearStateChangeStruct,
+  DepositConfigStruct,
   DepositEvent,
   OrderConfigStruct,
 } from "../typechain/contracts/orderbook/OrderBook";
 import { getEventArgs, waitForSubgraphToBeSynced } from "./utils";
-import { DepositConfigStruct } from "../typechain/contracts/orderbook/IOrderBookV1";
 
 describe("OrderClearStateChange entity", () => {
   let tokenA: ReserveToken18;

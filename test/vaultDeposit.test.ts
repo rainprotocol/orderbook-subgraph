@@ -8,7 +8,7 @@ import {
   eighteenZeros,
   getEvents,
   randomUint256,
-} from "../rain-protocol/utils";
+} from "../utils";
 import { ethers } from "hardhat";
 import { DepositEvent } from "../typechain/contracts/orderbook/OrderBook";
 import {
@@ -16,7 +16,7 @@ import {
   getEventArgs,
   waitForSubgraphToBeSynced,
 } from "./utils";
-import { DepositConfigStruct } from "../typechain/contracts/orderbook/IOrderBookV1";
+import { DepositConfigStruct } from "../typechain/contracts/orderbook/OrderBook";
 
 describe("VaultDeposit entity", () => {
   let tokenA: ReserveToken18;

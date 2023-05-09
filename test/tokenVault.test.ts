@@ -19,9 +19,9 @@ import {
   minBN,
   op,
   randomUint256,
-} from "../rain-protocol/utils";
+} from "../utils";
 import { ethers } from "hardhat";
-import { encodeMeta, getOrderConfig } from "../rain-protocol/utils/orderBook/order";
+import { encodeMeta, getOrderConfig } from "../utils/orderBook/order";
 import { concat } from "ethers/lib/utils";
 import {
   AddOrderEvent,
@@ -29,13 +29,13 @@ import {
   ClearConfigStruct,
   ClearEvent,
   ClearStateChangeStruct,
+  DepositConfigStruct,
   DepositEvent,
   OrderConfigStruct,
   WithdrawConfigStruct,
   WithdrawEvent,
 } from "../typechain/contracts/orderbook/OrderBook";
 import { getEventArgs, waitForSubgraphToBeSynced } from "./utils";
-import { DepositConfigStruct } from "../typechain/contracts/orderbook/IOrderBookV1";
 
 describe("TokenVault entity", () => {
   let tokenA: ReserveToken18;

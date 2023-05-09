@@ -190,7 +190,7 @@ type VaultWithdraw implements Event @entity {
 }
 
 type ERC20 @entity {
-  id: Bytes! #address of token
+  id: ID! #address of token
   name: String!
   symbol: String!
   totalSupply: BigInt!
