@@ -31,7 +31,7 @@ const getOpmetaFilePaths = () => {
     }
   }
 
-  fromDir("./rain-protocol/contracts", ".opmeta.json");
+  fromDir("./contracts", ".opmeta.json");
 
   return opmetaFilePaths;
 };
