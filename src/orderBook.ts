@@ -83,7 +83,7 @@ export function handleAddOrder(event: AddOrder): void {
   order.validOutputs = [];
 
   for (let i = 0; i < orderParam.validInputs.length; i++) {
-    let token = createToken(orderParam.validInputs[i].token.toHex());
+    let token = createToken(orderParam.validInputs[i].token);
     let vault = createVault(
       orderParam.validInputs[i].vaultId.toString(),
       orderParam.owner
@@ -107,6 +107,7 @@ export function handleAddOrder(event: AddOrder): void {
     input.token = token.id;
     input.decimals = orderParam.validInputs[i].decimals;
     input.vault = vault.id;
+    input.vaultId = orderParam.validInputs[i].vaultId;
     input.order = orderHashHex;
     input.tokenVault = tokenVault.id;
     input.save();
@@ -118,7 +119,7 @@ export function handleAddOrder(event: AddOrder): void {
   }
 
   for (let i = 0; i < orderParam.validOutputs.length; i++) {
-    let token = createToken(orderParam.validOutputs[i].token.toHex());
+    let token = createToken(orderParam.validOutputs[i].token);
     let vault = createVault(
       orderParam.validOutputs[i].vaultId.toString(),
       orderParam.owner
@@ -142,6 +143,7 @@ export function handleAddOrder(event: AddOrder): void {
     output.token = token.id;
     output.decimals = orderParam.validOutputs[i].decimals;
     output.vault = vault.id;
+    output.vaultId = orderParam.validOutputs[i].vaultId;
     output.order = orderHashHex;
     output.tokenVault = tokenVault.id;
     output.save();
@@ -322,10 +324,10 @@ export function handleClear(event: Clear): void {
   ).id;
 
   bounty.bountyTokenA = createToken(
-    alice.validOutputs[clearConfig.aliceOutputIOIndex.toI32()].token.toHex()
+    alice.validOutputs[clearConfig.aliceOutputIOIndex.toI32()].token
   ).id;
   bounty.bountyTokenB = createToken(
-    bob.validOutputs[clearConfig.bobOutputIOIndex.toI32()].token.toHex()
+    bob.validOutputs[clearConfig.bobOutputIOIndex.toI32()].token
   ).id;
   bounty.transaction = createTransaction(
     event.transaction.hash.toHex(),
@@ -429,14 +431,14 @@ export function handleDeposit(event: Deposit): void {
     tokenVault.balance = tokenVault.balance.plus(event.params.config.amount);
     tokenVault.balanceDisplay = toDisplay(
       tokenVault.balance,
-      event.params.config.token.toHex()
+      event.params.config.token.toHexString()
     );
     tokenVault.save();
   }
 
   let vaultDeposit = createVaultDeposit(event.transaction.hash.toHex());
   vaultDeposit.sender = createAccount(event.params.sender).id;
-  vaultDeposit.token = createToken(event.params.config.token.toHex()).id;
+  vaultDeposit.token = createToken(event.params.config.token).id;
   vaultDeposit.vaultId = event.params.config.vaultId;
   vaultDeposit.vault = createVault(
     event.params.config.vaultId.toString(),
@@ -445,7 +447,7 @@ export function handleDeposit(event: Deposit): void {
   vaultDeposit.amount = event.params.config.amount;
   vaultDeposit.amountDisplay = toDisplay(
     vaultDeposit.amount,
-    event.params.config.token.toHex()
+    event.params.config.token.toHexString()
   );
   vaultDeposit.tokenVault = tokenVault.id;
   vaultDeposit.vault = createVault(
@@ -488,14 +490,14 @@ export function handleTakeOrder(event: TakeOrder): void {
     event.params.input,
     event.params.config.order.validOutputs[
       event.params.config.outputIOIndex.toI32()
-    ].token.toHex()
+    ].token.toHexString()
   );
   orderEntity.output = event.params.output;
   orderEntity.outputDisplay = toDisplay(
     event.params.output,
     event.params.config.order.validInputs[
       event.params.config.inputIOIndex.toI32()
-    ].token.toHex()
+    ].token.toHexString()
   );
 
   // let multiplier = BDtoBIMultiplier(
@@ -522,12 +524,12 @@ export function handleTakeOrder(event: TakeOrder): void {
   orderEntity.inputToken = createToken(
     event.params.config.order.validInputs[
       event.params.config.inputIOIndex.toI32()
-    ].token.toHex()
+    ].token
   ).id;
   orderEntity.outputToken = createToken(
     event.params.config.order.validOutputs[
       event.params.config.outputIOIndex.toI32()
-    ].token.toHex()
+    ].token
   ).id;
   orderEntity.transaction = createTransaction(
     event.transaction.hash.toHex(),
@@ -598,14 +600,14 @@ export function handleWithdraw(event: Withdraw): void {
     tokenVault.balance = tokenVault.balance.minus(event.params.config.amount);
     tokenVault.balanceDisplay = toDisplay(
       tokenVault.balance,
-      event.params.config.token.toHex()
+      event.params.config.token.toHexString()
     );
     tokenVault.save();
   }
 
   let vaultWithdraw = createVaultWithdraw(event.transaction.hash.toHex());
   vaultWithdraw.sender = createAccount(event.params.sender).id;
-  vaultWithdraw.token = createToken(event.params.config.token.toHex()).id;
+  vaultWithdraw.token = createToken(event.params.config.token).id;
   vaultWithdraw.vaultId = event.params.config.vaultId;
   vaultWithdraw.vault = createVault(
     event.params.config.vaultId.toString(),
@@ -614,12 +616,12 @@ export function handleWithdraw(event: Withdraw): void {
   vaultWithdraw.requestedAmount = event.params.config.amount;
   vaultWithdraw.requestedAmountDisplay = toDisplay(
     event.params.config.amount,
-    event.params.config.token.toHex()
+    event.params.config.token.toHexString()
   );
   vaultWithdraw.amount = event.params.amount;
   vaultWithdraw.amountDisplay = toDisplay(
     vaultWithdraw.amount,
-    event.params.config.token.toHex()
+    event.params.config.token.toHexString()
   );
   vaultWithdraw.tokenVault = tokenVault.id;
   vaultWithdraw.vault = createVault(

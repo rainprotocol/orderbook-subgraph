@@ -1,18 +1,14 @@
 import {
   Bytes,
   BigInt,
-  TypedMap,
-  JSONValue,
   Address,
   ethereum,
   crypto,
   BigDecimal,
-  log,
 } from "@graphprotocol/graph-ts";
 import {
   Account,
   ERC20,
-  MetaContentV1,
   Order,
   OrderBook,
   OrderClear,
@@ -49,39 +45,6 @@ export function stringToArrayBuffer(val: string): ArrayBuffer {
   return buff;
 }
 
-export function createMetaContentV1(
-  id: string,
-  metaContentV1Object: TypedMap<string, JSONValue>,
-  document: Bytes
-): MetaContentV1 {
-  let metaContentV1 = MetaContentV1.load(id);
-  if (!metaContentV1) {
-    metaContentV1 = new MetaContentV1(id);
-    metaContentV1.payload = metaContentV1Object.mustGet("0").toString();
-    metaContentV1.magicNumber = BigInt.fromU64(
-      metaContentV1Object.mustGet("1").toU64()
-    );
-    metaContentV1.contentType = metaContentV1Object.mustGet("2").toString();
-    if (metaContentV1Object.isSet("3")) {
-      metaContentV1.contentEncoding = metaContentV1Object
-        .mustGet("3")
-        .toString();
-    }
-    if (metaContentV1Object.isSet("4")) {
-      metaContentV1.contentLanguage = metaContentV1Object
-        .mustGet("4")
-        .toString();
-    }
-    metaContentV1.documents = [];
-  }
-  let documents = metaContentV1.documents;
-  if (documents) documents.push(document);
-  metaContentV1.documents = documents;
-  metaContentV1.save();
-
-  return metaContentV1;
-}
-
 export function createAccount(address: Bytes): Account {
   let account = Account.load(address);
   if (!account) {
@@ -91,13 +54,11 @@ export function createAccount(address: Bytes): Account {
   return account;
 }
 
-export function createToken(address: string): ERC20 {
-  let token = ERC20.load(address);
-  let reserveToken = ReserveToken.bind(
-    Address.fromBytes(Bytes.fromHexString(address))
-  );
+export function createToken(address: Bytes): ERC20 {
+  let token = ERC20.load(address.toHex());
+  let reserveToken = ReserveToken.bind(Address.fromBytes(address));
   if (!token) {
-    token = new ERC20(address);
+    token = new ERC20(address.toHex());
 
     let decimals = reserveToken.try_decimals();
     let name = reserveToken.try_name();
@@ -122,6 +83,7 @@ export function createVault(vaultId: string, owner: Bytes): Vault {
   if (!vault) {
     vault = new Vault(`${vaultId}-${owner.toHex()}`);
     vault.owner = createAccount(owner).id;
+    vault.vaultId = BigInt.fromString(vaultId);
     vault.save();
   }
   return vault;
@@ -138,10 +100,11 @@ export function createTokenVault(
   if (!tokenVault) {
     tokenVault = new TokenVault(`${vaultId}-${owner.toHex()}-${token.toHex()}`);
     tokenVault.owner = createAccount(owner).id;
-    tokenVault.token = createToken(token.toHex()).id;
+    tokenVault.token = createToken(token).id;
     tokenVault.balance = BigInt.zero();
     tokenVault.balanceDisplay = BigDecimal.zero();
     tokenVault.vault = createVault(vaultId, owner).id;
+    tokenVault.vaultId = BigInt.fromString(vaultId);
     tokenVault.orders = [];
     tokenVault.orderClears = [];
     tokenVault.save();
@@ -311,7 +274,7 @@ export function createTransaction(
 }
 
 export function toDisplay(amount: BigInt, token: string): BigDecimal {
-  let erc20 = createToken(token);
+  let erc20 = createToken(Address.fromString(token));
   if (erc20) {
     let denominator = BigInt.fromString(getZeros(erc20.decimals));
     return amount.toBigDecimal().div(denominator.toBigDecimal());
