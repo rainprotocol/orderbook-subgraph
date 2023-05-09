@@ -91,6 +91,9 @@ type IO @entity {
 # Updated whenever an Withdraw event occurs
 type Vault @entity {
   id: ID! #{vaultId}-{owner}
+
+  vaultId: BigInt!
+
   "The owner of this Vault"
   owner: Account!
 
@@ -116,6 +119,8 @@ type TokenVault @entity {
   owner: Account!
   "The id of this vault"
   vault: Vault!
+
+  vaultId: BigInt!
 
   "The token that has a balance for this vault and owner."
   token: ERC20!

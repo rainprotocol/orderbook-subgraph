@@ -8,7 +8,6 @@ let
     { };
 
   compile = pkgs.writeShellScriptBin "compile" ''
-    forge build
     hardhat compile --force
   '';
 
@@ -61,7 +60,6 @@ let
 
   init = pkgs.writeShellScriptBin "init" ''
     npm install
-    rm -rf docker/data
   '';
 
   ci-prepare-subgraph-polygon = pkgs.writeShellScriptBin "ci-prepare-subgraph-polygon" ''

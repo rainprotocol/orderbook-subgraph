@@ -83,6 +83,7 @@ export function createVault(vaultId: string, owner: Bytes): Vault {
   if (!vault) {
     vault = new Vault(`${vaultId}-${owner.toHex()}`);
     vault.owner = createAccount(owner).id;
+    vault.vaultId = BigInt.fromString(vaultId);
     vault.save();
   }
   return vault;
@@ -103,6 +104,7 @@ export function createTokenVault(
     tokenVault.balance = BigInt.zero();
     tokenVault.balanceDisplay = BigDecimal.zero();
     tokenVault.vault = createVault(vaultId, owner).id;
+    tokenVault.vaultId = BigInt.fromString(vaultId);
     tokenVault.orders = [];
     tokenVault.orderClears = [];
     tokenVault.save();
