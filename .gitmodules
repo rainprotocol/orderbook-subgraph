@@ -1,3 +1,4 @@
 [submodule "rain-protocol"]
 	path = rain-protocol
 	url = https://github.com/rainprotocol/rain-protocol.git
+	branch = develop
