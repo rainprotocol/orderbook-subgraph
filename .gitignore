@@ -1,6 +1,7 @@
 # subgraph
 build
 generated
+subgraph.yaml
 
 # npm
 node_modules
