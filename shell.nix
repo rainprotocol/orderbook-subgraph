@@ -16,6 +16,7 @@ let
   '';
 
   docker-up = pkgs.writeShellScriptBin "docker-up" ''
+    docker-down
     rm -rf docker/data
     docker-compose -f docker/docker-compose.yml up --build -d
   '';
@@ -26,18 +27,9 @@ let
 
   flush-all = pkgs.writeShellScriptBin "flush-all" ''
     rm -rf cache
-    rm -rf cache_forge
     rm -rf node_modules
-    rm -rf abis
-    rm -rf artifacts
     rm -rf build
-    rm -rf contracts
     rm -rf generated
-    rm -rf typechain
-    rm -rf schema
-    rm -rf utils
-    rm -rf out
-    rm -rf foundry.toml
     rm -rf docker/data
   '';
 
