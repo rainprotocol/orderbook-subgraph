@@ -35,7 +35,7 @@ import {
   WithdrawEvent,
 } from "../typechain/contracts/orderbook/OrderBook";
 import { getEventArgs, waitForSubgraphToBeSynced } from "./utils";
-import { DepositConfigStruct } from "../typechain/contracts/orderbook/IOrderBookV1";
+import { DepositConfigStruct } from "../typechain/contracts/orderbook/OrderBook";
 
 describe("Vault entity", () => {
   let tokenA: ReserveToken18;

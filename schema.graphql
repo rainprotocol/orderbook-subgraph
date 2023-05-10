@@ -36,7 +36,6 @@ type MetaContentV1 @entity {
 type Order implements Event @entity {
   "The hash of the order"
   id: ID! # This value is emitted as Uint256, but you should use the hex string representation (it's a hash)
-
   "The address that added the order"
   owner: Account!
 
@@ -81,6 +80,7 @@ type IO @entity {
   token: ERC20!
   decimals: Int!
   vault: Vault!
+  vaultId: BigInt!
   order: Order!
   tokenVault: TokenVault!
 }
@@ -90,6 +90,9 @@ type IO @entity {
 # Updated whenever an Withdraw event occurs
 type Vault @entity {
   id: ID! #{vaultId}-{owner}
+
+  vaultId: BigInt!
+
   "The owner of this Vault"
   owner: Account!
 
@@ -115,6 +118,8 @@ type TokenVault @entity {
   owner: Account!
   "The id of this vault"
   vault: Vault!
+
+  vaultId: BigInt!
 
   "The token that has a balance for this vault and owner."
   token: ERC20!
@@ -189,7 +194,7 @@ type VaultWithdraw implements Event @entity {
 }
 
 type ERC20 @entity {
-  id: Bytes! #address of token
+  id: ID! # address of token
   name: String!
   symbol: String!
   totalSupply: BigInt!

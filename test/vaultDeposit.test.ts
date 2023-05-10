@@ -16,7 +16,7 @@ import {
   getEventArgs,
   waitForSubgraphToBeSynced,
 } from "./utils";
-import { DepositConfigStruct } from "../typechain/contracts/orderbook/IOrderBookV1";
+import { DepositConfigStruct } from "../typechain/contracts/orderbook/OrderBook";
 
 describe("VaultDeposit entity", () => {
   let tokenA: ReserveToken18;
