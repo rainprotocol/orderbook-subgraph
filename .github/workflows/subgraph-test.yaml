@@ -19,9 +19,7 @@ jobs:
         run: nix-shell --run init
 
       - name: Build Docker Compose images
-        run: |
-          nix-shell --run docker-down
-          nix-shell --run docker-up
+        run: nix-shell --run docker-up
 
       - name: Run Subgraph tests
         run: nix-shell --run ci-test

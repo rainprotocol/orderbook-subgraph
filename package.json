@@ -29,15 +29,19 @@
     "@prb/math": "^3.3.1",
     "@rainprotocol/assemblyscript-cbor": "git+https://github.com/rainprotocol/assemblyscript-cbor.git#6ab1823603e297d1f6e5ca880131cbbe2e31c360",
     "0xsequence": "^0.39.0",
+    "colors": "^1.4.0",
     "commander": "^10.0.0",
+    "etherscan-api": "^10.3.0",
     "hardhat": "^2.13.0",
-    "mustache": "^3.2.1"
+    "mustache": "^3.2.1",
+    "node-fetch": "^2.6.11",
+    "polygonscan-api": "^1.0.4"
   },
   "devDependencies": {
-    "@rainprotocol/rainlang": "^2.2.2",
     "@nomicfoundation/hardhat-foundry": "^1.0.0",
     "@nomiclabs/hardhat-ethers": "^2.2.2",
     "@nomiclabs/hardhat-waffle": "^2.0.5",
+    "@rainprotocol/rainlang": "^2.2.2",
     "@typechain/hardhat": "^6.1.5",
     "@types/chai": "^4.3.4",
     "@types/mocha": "^10.0.1",

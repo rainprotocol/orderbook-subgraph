@@ -20,3 +20,5 @@ generated
 /docker/*
 /docker/data/postgres
 /scripts
+contracts
+utils
