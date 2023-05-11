@@ -3,12 +3,13 @@ import * as dotenv from "dotenv";
 import * as path from "path";
 import * as fs from "fs";
 import { program } from "commander";
-import { artifacts, ethers, network } from "hardhat";
+import { artifacts, ethers } from "hardhat";
 import { ApolloFetch, FetchResult, createApolloFetch } from "apollo-fetch";
 import { inflateJson } from "../utils";
 import { decodeRainMetaDocument } from "../utils/meta/cbor";
 import { MAGIC_NUMBERS } from "../test/utils";
 import "colors";
+import fetch, { Response } from "node-fetch";
 
 dotenv.config();
 
@@ -114,8 +115,8 @@ const checkMetaFromSubgraph = async (network: string, contract: string): Promise
   const response = (await subgraph({ query })) as FetchResult;
   const data = response.data.contract;
   if (data == null) {
-    console.log(`Contract ${contract} is not available on ${network} registry subgraph`.yellow);
-    return -1;
+    console.log(`Contract ${contract} is not available on ${network} registry subgraph`.red);
+    return 0;
   }
 
   const decoded = decodeRainMetaDocument(data.meta.metaBytes)
@@ -123,8 +124,7 @@ const checkMetaFromSubgraph = async (network: string, contract: string): Promise
 
   if (checkABI(onchainABI)) {
     console.log("Contract ABI Matches with Local ABI".green);
-    // return data.deployTransaction.blockNumber;
-    return 0;
+    return data.deployTransaction.blockNumber;
   } else {
     console.log("Contract ABI doesn't match with onchain ABI".red);
     return 0
@@ -162,25 +162,35 @@ const checkABI = (onchainABI: any): boolean => {
   }
 }
 
+
 /**
- * returns the etherscan or polygonscan api for given network
+ * returns contracts source code from etherscan/polygonscan API
+ * @param api etherscan/polygonscan API
+ * @param contractAddress contract address
  * @param network network
- * @param apiKey string key
- * @returns API instance
+ * @returns contract source code
  */
-const getAPI = (network: string, apiKey: string): any => {
-  if (network === "mumbai")
-    return require('polygonscan-api').init(apiKey, network);
-  else if (network === "matic")
-    return require('polygonscan-api').init(apiKey);
-  else if (network === "mainnet")
-    return require("etherscan-api").init(apiKey);
-  else throw new Error("Unsupported network.")
+const getsourceCode = async (api_key: string, contractAddress: string, network: string): Promise<any> => {
+  let sourceCode: Response;
+  if (network == "matic"){
+    sourceCode = await fetch(`https://api.polygonscan.com/api?module=contract&action=getsourcecode&address=${contractAddress}&apikey=${api_key}`)
+  } else if (network == "mumbai") {
+    sourceCode = await fetch(`https://api-testnet.polygonscan.com/api?module=contract&action=getsourcecode&address=${contractAddress}&apikey=${api_key}`)
+  } else if (network == "mainnet") {
+    sourceCode = await fetch(`https://api.etherscan.com/api?module=contract&action=getsourcecode&address=${contractAddress}&apikey=${api_key}`)
+  }
+  return await sourceCode.json()
 }
 
+/**
+ * Check local ABI with onchain ABI with explorer 
+ * @param network network
+ * @param api_key etherscan/polygonscan API key of user
+ * @param contractAddress contract address
+ * @returns boolean
+ */
 const checkABIfromExplorer = async (network: string, api_key: string, contractAddress: string): Promise<boolean> => {
-  const api = getAPI(network, api_key);
-  const sourceCode = await api.contract.getsourcecode(contractAddress)
+  const sourceCode = await getsourceCode(api_key, contractAddress, network);
   const onchainABI = JSON.parse(sourceCode.result[0].ABI)
   if (checkABI(onchainABI)) {
     console.log("Contract ABI Matches with Local ABI".green);
@@ -190,6 +200,16 @@ const checkABIfromExplorer = async (network: string, api_key: string, contractAd
   return false;
 }
 
+/**
+ * deploys a subgraph
+ * @param network network for subgraph
+ * @param contractAddress contract address
+ * @param blockNumber blockNumber of contract deployment
+ * @param graphAccessToken subgraph graph access token of user
+ * @param subgraphName name of the subgraph endpoint
+ * @param endpoint graphprotocol endpoint
+ * @param subgraphTemplate path to subgraph.yaml template
+ */
 const deploySubgraph = (network: string, contractAddress: string, blockNumber: number, graphAccessToken: string, subgraphName: string, endpoint: string, subgraphTemplate: string) => {
   exec(`npx graph auth --product hosted-service ${graphAccessToken}`)
 
@@ -238,7 +258,8 @@ const main = async () => {
     .option(
       "--etherscanAPIKey <string>",
       "etherscanAPIKey for selected network",
-    );
+    )
+    .option("--skipCheck");
 
   program.parse();
 
@@ -254,10 +275,11 @@ const main = async () => {
   const _endpoint = "--node https://api.thegraph.com/deploy/";
   const _subgraphTemplate = options.subgraphTemplate;
   const _api_key = options.etherscanAPIKey;
-  let _blockNumber = options.blockNumber;
+  const _blockNumber = options.blockNumber;
+  const _isSkip = options.skipCheck;
 
-  const args = process.argv;
-  if (args.includes('--skipCheck')) {
+  if (_isSkip) {
+    console.log("You are deploying the subgraph without any check, subgraph syncing may fail.".yellow);
     if (options.blockNumber == null) throw new Error("missing --blocknumber option".cyan)
     deploySubgraph(_network, _contractAddress, _blockNumber, _graphAccessToken, _subgraphName, _endpoint, _subgraphTemplate);
     return;
@@ -265,8 +287,11 @@ const main = async () => {
 
   const registryResult = await checkMetaFromSubgraph(_network, _contractAddress);
 
-  if (registryResult == 0) {
-    console.log("ABI check with registry subgraph is failed".red);
+  if (registryResult != 0) {
+    deploySubgraph(_network, _contractAddress, registryResult, _graphAccessToken, _subgraphName, _endpoint, _subgraphTemplate);
+    return;
+  } else {
+    console.log("ABI check with registry subgraph failed".red);
     console.log("Trying with etherscan/polygonscan".green);
     if (options.blockNumber == null) throw new Error("missing --blocknumber option".cyan)
     if (_api_key == null) throw new Error("missing --etherscanAPIKey option".cyan);
@@ -275,14 +300,11 @@ const main = async () => {
   const explorerResult = await checkABIfromExplorer(_network, _api_key, _contractAddress);
 
   if (!explorerResult) {
-    console.log("ABI check with etherscan/polygonscan is failed".red);
+    console.log("ABI check with etherscan/polygonscan failed".red);
     console.log("If you still want to deploy subgraph add --skipCheck option".cyan);
-    throw new Error("Subgraph deployment failed".red);
+  } else {
+    deploySubgraph(_network, _contractAddress, _blockNumber, _graphAccessToken, _subgraphName, _endpoint, _subgraphTemplate);
   }
-
-  _blockNumber = options.blockNumber || registryResult;
-
-  deploySubgraph(_network, _contractAddress, _blockNumber, _graphAccessToken, _subgraphName, _endpoint, _subgraphTemplate);
 };
 
 main()

@@ -34,6 +34,7 @@
     "etherscan-api": "^10.3.0",
     "hardhat": "^2.13.0",
     "mustache": "^3.2.1",
+    "node-fetch": "^2.6.11",
     "polygonscan-api": "^1.0.4"
   },
   "devDependencies": {
