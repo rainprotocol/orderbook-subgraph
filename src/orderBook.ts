@@ -34,7 +34,6 @@ import {
 } from "@graphprotocol/graph-ts";
 
 import {
-  BDtoBIMultiplier,
   RAIN_META_DOCUMENT_HEX,
   createAccount,
   createOrder,
@@ -46,7 +45,6 @@ import {
   createVault,
   createVaultDeposit,
   createVaultWithdraw,
-  gcd,
   getEvenHex,
   getKeccak256FromBytes,
   getOB,
@@ -517,7 +515,13 @@ export function handleTakeOrder(event: TakeOrder): void {
   // let inputRatio = input.div(GCD).toBigDecimal();
   // let outputRatio = output.div(GCD).toBigDecimal();
 
-  orderEntity.IORatio = orderEntity.inputDisplay.div(orderEntity.outputDisplay);
+  if (orderEntity.outputDisplay != BigDecimal.zero()) {
+    orderEntity.IORatio = orderEntity.inputDisplay.div(
+      orderEntity.outputDisplay
+    );
+  } else {
+    orderEntity.IORatio = BigDecimal.zero();
+  }
 
   orderEntity.inputIOIndex = event.params.config.inputIOIndex;
   orderEntity.outputIOIndex = event.params.config.outputIOIndex;

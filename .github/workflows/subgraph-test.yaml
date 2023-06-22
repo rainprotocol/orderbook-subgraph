@@ -45,6 +45,6 @@ jobs:
       - name: Graph deploy ethereum 
         run: nix-shell --run "ts-node scripts/deploy.ts --contractAddress 0xce0a4f3e60178668c89f86d918a0585ca80e0f6d --subgraphName rainprotocol/orderbook-ethereum --network mainnet --graphAccessToken $THE_GRAPH_API_TOKEN"
       
-      - name: Graph deploy ethereum 
+      - name: Graph deploy polygon 
         if: always()
         run: nix-shell --run "ts-node scripts/deploy.ts --contractAddress 0x2de560ED9Ba8a6CDFe92e26862Ecb86e6e2d9705 --subgraphName rainprotocol/orderbook-sloshy --network matic --graphAccessToken $THE_GRAPH_API_TOKEN"
