@@ -30,12 +30,17 @@ import {
   JSONValue,
   JSONValueKind,
   TypedMap,
+  ethereum,
   json,
+  log,
 } from "@graphprotocol/graph-ts";
 
 import {
+  AFTER_CLEAR_EVENT_TOPIC,
   BDtoBIMultiplier,
+  CLEAR_EVENT_TOPIC,
   RAIN_META_DOCUMENT_HEX,
+  TAKE_ORDER_EVENT_TOPIC,
   createAccount,
   createOrder,
   createOrderClear,
@@ -305,6 +310,7 @@ export function handleClear(event: Clear): void {
     event.transaction.hash.toHex(),
     event.block
   ).id;
+
   orderClear.emitter = createAccount(event.params.sender).id;
   orderClear.timestamp = event.block.timestamp;
   orderClear.save();
@@ -416,7 +422,40 @@ export function handleClear(event: Clear): void {
   config.bobTokenVaultOutput = bobTokenVaultOutput;
   config.save();
 }
-export function handleContext(event: Context): void {}
+export function handleContext(event: Context): void {
+  const receipt = event.receipt;
+
+  // Should be at least one log (the current event is one). This is conditional
+  // is just for safe typing.
+  if (receipt && receipt.logs.length > 0) {
+    log.info(`CONTEXT_4 READING LOGS LENGTH: ${receipt.logs.length}`, []);
+    const logs_: string[] = [];
+  }
+  if (receipt && receipt.logs.length > 0) {
+    const logs = receipt.logs;
+
+    const log_takeOrder = logs.findIndex(
+      (log_) => log_.topics[0].toHex() == TAKE_ORDER_EVENT_TOPIC
+    );
+    const log_clear = logs.findIndex(
+      (log_) => log_.topics[0].toHex() == CLEAR_EVENT_TOPIC
+    );
+    const log_afterClear = logs.findIndex(
+      (log_) => log_.topics[0].toHex() == AFTER_CLEAR_EVENT_TOPIC
+    );
+
+    if (log_clear != -1 && log_afterClear != -1) {
+      // It's a context for clear and afterClear
+    }
+
+    if (log_takeOrder != -1) {
+      // It's a context for a takeOrder
+      // Create the TakeOrder and assign the context entity ID.
+      // ON the takeOrder handler, the takeOrder entity should not be created, only
+      // read/obtained and modified with the data of the take order event
+    }
+  }
+}
 
 export function handleDeposit(event: Deposit): void {
   let tokenVault = createTokenVault(

@@ -264,28 +264,32 @@ type Bounty @entity {
 # Created for every pair of TakeOrder events
 type TakeOrderEntity implements Event @entity {
   id: ID! # Hash of ((TakeOrder.config))
-  sender: Account!
-  order: Order!
+  sender: Account
+  order: Order
   "The input amount from the perspective of sender"
-  input: BigInt!
-  inputDisplay: BigDecimal!
+  input: BigInt
+  inputDisplay: BigDecimal
 
   "The output amount from the perspective of sender"
-  output: BigInt!
-  outputDisplay: BigDecimal!
+  output: BigInt
+  outputDisplay: BigDecimal
 
   "IO Ratio"
-  IORatio: BigDecimal!
+  IORatio: BigDecimal
 
   "The index of the input token in order to match with the take order output."
-  inputIOIndex: BigInt! # index of input token for Input Token Array
+  inputIOIndex: BigInt # index of input token for Input Token Array
   "The index of the output token in `order` to match with the take order input."
-  outputIOIndex: BigInt! # index of output token for Output Token Array
-  inputToken: ERC20! # TakeOrder.config.order.validInputs[TakeOrder.config.inputIOIndex].token
-  outputToken: ERC20! # TakeOrder.config.order.validOutputs[TakeOrder.config.outputIOIndex].token
+  outputIOIndex: BigInt # index of output token for Output Token Array
+  inputToken: ERC20 # TakeOrder.config.order.validInputs[TakeOrder.config.inputIOIndex].token
+  outputToken: ERC20 # TakeOrder.config.order.validOutputs[TakeOrder.config.outputIOIndex].token
+  #
+  # Event fields
   transaction: Transaction!
   emitter: Account!
   timestamp: BigInt!
+
+  context: Context!
 }
 
 # Create when an OrderClear entity is created
@@ -322,6 +326,46 @@ type Account @entity {
   events: [Event!] @derivedFrom(field: "emitter")
 }
 
+type Transaction @entity(immutable: true) {
+  id: ID!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  events: [Event!] @derivedFrom(field: "transaction")
+}
+
+type Context implements Event @entity {
+  id: ID!
+  "Base caller"
+  caller: Account!
+  "Base contract"
+  contract: OrderBook!
+
+  "Contextual data available to both calculate order and handle IO"
+  callingContext: [BigInt!]
+  "Contains the DECIMAL RESCALED calculations"
+  calculationsContext: [BigInt!]
+  "The inputs context data"
+  vaultInputsContext: [BigInt!]
+  "The outputs context data"
+  vaultOutputsContext: [BigInt!]
+
+  "Optional signed context relevant to the transaction"
+  signedContext: [SignedContext!]
+
+  "Transaction where this event was emitted."
+  transaction: Transaction!
+  "Account that sent the transaction this event was emitted in."
+  emitter: Account!
+  timestamp: BigInt!
+}
+
+type SignedContext @entity {
+  id: ID!
+  signer: Bytes!
+  signature: Bytes!
+  context: [BigInt!]
+}
+
 interface Event {
   id: ID!
   "Transaction this event was emitted in."
@@ -329,11 +373,4 @@ interface Event {
   "Account that sent the transaction this event was emitted in."
   emitter: Account!
   timestamp: BigInt!
-}
-
-type Transaction @entity(immutable: true) {
-  id: ID!
-  timestamp: BigInt!
-  blockNumber: BigInt!
-  events: [Event!] @derivedFrom(field: "transaction")
 }

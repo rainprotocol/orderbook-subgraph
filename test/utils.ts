@@ -7,6 +7,23 @@ import * as path from "path";
 import { ApolloFetch, createApolloFetch } from "apollo-fetch";
 import { OBMultiTx, OrderBook } from "../typechain";
 
+/**
+ * The main context columns for Orderbook.
+ *
+ * If the context have more than these columns (major than 5 columns), means
+ * that have signed context. In this case, should be handled carefully since they
+ * have dynamic length.
+ *
+ * The data on column using the index 5 are the signers for each next rows.
+ */
+export enum ContextColumns {
+  CONTEXT_BASE_COLUMN,
+  CONTEXT_CALLING_CONTEXT_COLUMN,
+  CONTEXT_CALCULATIONS_COLUMN,
+  CONTEXT_VAULT_INPUTS_COLUMN,
+  CONTEXT_VAULT_OUTPUTS_COLUMN,
+}
+
 export const META_MAGIC_NUMBER_V1 = BigInt(0xff0a89c674ee7874n);
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const writeFile = (_path: string, file: any): void => {

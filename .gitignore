@@ -24,3 +24,6 @@ schema
 
 .vscode
 docker/data
+
+
+dont_save

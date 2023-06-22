@@ -6,12 +6,12 @@ dataSources:
     name: OrderBook
     network: localhost
     source:
-      address: "0x286B8DecD5ED79c962b2d8F4346CD97FF0E2C352"
+      address: "0x07882Ae1ecB7429a84f1D53048d35c4bB2056877"
       abi: OrderBook
-      startBlock: 426
+      startBlock: 171
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - OrderBook
@@ -31,6 +31,7 @@ dataSources:
           handler: handleClear
         - event: Context(address,uint256[][])
           handler: handleContext
+          receipt: true
         - event: Deposit(address,(address,uint256,uint256))
           handler: handleDeposit
         - event: MetaV1(address,uint256,bytes)
@@ -56,7 +57,7 @@ templates:
       abi: ReserveToken
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - EmissionsERC20
