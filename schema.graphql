@@ -35,7 +35,10 @@ type MetaContentV1 @entity {
 # Created with the first AddOrder event, then updated on the corresponding AddOrder/RemoveOrder events
 type Order implements Event @entity {
   "The hash of the order"
-  id: ID! # This value is emitted as Uint256, but you should use the hex string representation (it's a hash)
+  id: ID! # This value is emitted as Uint256, but you should use the hex string representation (it's a hash)H
+  "The hash of the order"
+  orderHash: Bytes!
+
   "The address that added the order"
   owner: Account!
 
@@ -90,7 +93,6 @@ type IO @entity {
 # Updated whenever an Withdraw event occurs
 type Vault @entity {
   id: ID! #{vaultId}-{owner}
-
   vaultId: BigInt!
 
   "The owner of this Vault"
