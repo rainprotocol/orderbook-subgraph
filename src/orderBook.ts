@@ -68,7 +68,9 @@ export function handleAddOrder(event: AddOrder): void {
     event.block
   ).id;
 
-  order.orderHash = getEvenHex(event.params.orderHash.toHex());
+  order.orderHash = Bytes.fromHexString(
+    getEvenHex(event.params.orderHash.toHex())
+  );
   order.timestamp = event.block.timestamp;
   order.owner = createAccount(orderParam.owner).id;
   order.emitter = createAccount(event.params.sender).id;
