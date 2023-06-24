@@ -8,11 +8,13 @@ import {
 } from "@graphprotocol/graph-ts";
 import {
   Account,
+  ContextEntity,
   ERC20,
   Order,
   OrderBook,
   OrderClear,
   RainMetaV1,
+  SignedContext,
   TakeOrderEntity,
   TokenVault,
   Transaction,
@@ -24,6 +26,18 @@ import { ReserveToken } from "../generated/OrderBook/ReserveToken";
 import { ClearAliceStruct } from "../generated/OrderBook/OrderBook";
 
 export const RAIN_META_DOCUMENT_HEX = "0xff0a89c674ee7874";
+
+// Orderbook: TakeOrder(address sender, TakeOrderConfig config, uint256 input, uint256 output)
+export let TAKE_ORDER_EVENT_TOPIC =
+  "0x219a030b7ae56e7bea2baab709a4a45dc174a1f85e57730e5cb395bc32962542";
+
+// Orderbook: Clear(address sender, Order alice, Order bob, ClearConfig clearConfig)
+export let CLEAR_EVENT_TOPIC =
+  "0xd153812deb929a6e4378f6f8cf61d010470840bf2e736f43fb2275803958bfa2";
+
+// Orderbook: AfterClear(address sender, ClearStateChange clearStateChange);
+export let AFTER_CLEAR_EVENT_TOPIC =
+  "0x3f20e55919cca701abb2a40ab72542b25ea7eed63a50f979dd2cd3231e5f488d";
 
 /**
  * From a given hexadecimal string, check if it's have an even length
@@ -314,4 +328,29 @@ export function BDtoBIMultiplier(n1: BigDecimal, n2: BigDecimal): BigInt {
   let location = number.toString().indexOf(".");
   let len = number.toString().slice(location + 1).length;
   return BigInt.fromString(getZeros(len));
+}
+
+export function createSignedContext(
+  txHash: string,
+  logIndex: string
+): SignedContext {
+  for (let i = 0; ; i++) {
+    let signedContext = SignedContext.load(`${txHash}-${logIndex}-${i}`);
+    if (!signedContext) {
+      return new SignedContext(`${txHash}-${logIndex}-${i}`);
+    }
+  }
+  return new SignedContext("");
+}
+export function createContextEntity(
+  txHash: string,
+  logIndex: string
+): ContextEntity {
+  for (let i = 0; ; i++) {
+    let contextEntity = ContextEntity.load(`${txHash}-${logIndex}-${i}`);
+    if (!contextEntity) {
+      return new ContextEntity(`${txHash}-${logIndex}-${i}`);
+    }
+  }
+  return new ContextEntity("");
 }

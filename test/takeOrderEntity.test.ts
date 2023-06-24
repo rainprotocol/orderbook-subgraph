@@ -27,6 +27,7 @@ import {
 import { getEventArgs, waitForSubgraphToBeSynced } from "./utils";
 import { FetchResult } from "apollo-fetch";
 
+//TODO: Add more tests with more takeOrders and the new entities
 describe("TakeOrderEntity", () => {
   let tokenA: ReserveToken18;
   let tokenB: ReserveToken18;
@@ -198,7 +199,7 @@ describe("TakeOrderEntity", () => {
     }
   });
 
-  it("test with context", async function () {
+  it("TODO: test with context", async function () {
     const [, alice, bob, goodSigner] = signers;
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
@@ -316,18 +317,19 @@ describe("TakeOrderEntity", () => {
       orderBook
     )) as Array<TakeOrderEvent["args"]>;
 
-    const contextEvents = (await getEvents(
-      txTakeOrders,
-      "Context",
-      orderBook
-    )) as Array<ContextEvent["args"]>;
+    // const contextEvents = (await getEvents(
+    //   txTakeOrders,
+    //   "Context",
+    //   orderBook
+    // )) as Array<ContextEvent["args"]>;
 
-    console.log("Sender: ", txTakeOrders.from);
-    console.log("OB: ", orderBook.address);
-    ///
-    console.log("=========== event");
-    console.log(contextEvents[0].sender);
-    console.log(JSON.stringify(contextEvents[0].context, null, 2));
+    // console.log("Sender: ", txTakeOrders.from);
+    // console.log("OB: ", orderBook.address);
+    // console.log("goodSigner: ", goodSigner.address);
+    // ///
+    // console.log("=========== event");
+    // console.log(contextEvents[0].sender);
+    // console.log(JSON.stringify(contextEvents[0].context, null, 2));
 
     const tokenAAliceBalance = await tokenA.balanceOf(alice.address);
     const tokenBAliceBalance = await tokenB.balanceOf(alice.address);

@@ -6,6 +6,7 @@ import {
   OrderClearStateChange,
   ClearOrderConfig,
   TokenVault,
+  ContextEntity,
 } from "../generated/schema";
 import {
   AddOrder,
@@ -31,13 +32,20 @@ import {
   JSONValueKind,
   TypedMap,
   json,
+  log,
+  store,
 } from "@graphprotocol/graph-ts";
 
 import {
+  AFTER_CLEAR_EVENT_TOPIC,
+  CLEAR_EVENT_TOPIC,
   RAIN_META_DOCUMENT_HEX,
+  TAKE_ORDER_EVENT_TOPIC,
   createAccount,
+  createContextEntity,
   createOrder,
   createOrderClear,
+  createSignedContext,
   createTakeOrderConfig,
   createToken,
   createTokenVault,
@@ -55,6 +63,105 @@ import {
 } from "./utils";
 import { CBORDecoder } from "@rainprotocol/assemblyscript-cbor";
 import { OrderString } from "./orderJsonString";
+
+export function handleContext(event: Context): void {
+  const receipt = event.receipt;
+
+  // Should be at least one log (the current event is one). This is conditional
+  // is just for safe typing.
+  if (receipt && receipt.logs.length > 0) {
+    const logs = receipt.logs;
+
+    const log_takeOrder = logs.findIndex(
+      (log_) => log_.topics[0].toHex() == TAKE_ORDER_EVENT_TOPIC
+    );
+    const log_clear = logs.findIndex(
+      (log_) => log_.topics[0].toHex() == CLEAR_EVENT_TOPIC
+    );
+    const log_afterClear = logs.findIndex(
+      (log_) => log_.topics[0].toHex() == AFTER_CLEAR_EVENT_TOPIC
+    );
+
+    if (log_clear != -1 && log_afterClear != -1) {
+      // It's a context for clear and afterClear
+      // This is in case that need to support context for these events
+    }
+
+    if (log_takeOrder != -1) {
+      // It's a context for a takeOrder
+      // Create the TakeOrder and assign the context entity ID.
+      // ON the takeOrder handler, the takeOrder entity should not be created, only
+      // read/obtained and modified with the data of the take order event.
+      const context = event.params.context;
+
+      // Column 0 is the Context Base
+      const sender = Bytes.fromHexString(getEvenHex(context[0][0].toHex()));
+      const callerContract = Bytes.fromHexString(
+        getEvenHex(context[0][1].toHex())
+      );
+
+      // Column 1 is the Context Calling
+      const callingContext = context[1];
+
+      // Column 2 is the Context Calculations
+      const calculationsContext = context[2];
+
+      // Column 3 is the Context Vault Inputs
+      const vaultInputsContext = context[3];
+
+      // Column 4 is the Context Vault Outputs
+      const vaultOutputsContext = context[4];
+
+      // After the column 4, all is of signedContext
+      const signedContextArr = context.slice(5);
+
+      // Where all the "real" signed conext entities are "save"
+      const signedContextEntities: string[] = [];
+
+      if (signedContextArr.length > 0) {
+        const signers = signedContextArr.shift();
+
+        if (signers.length == signedContextArr.length) {
+          for (let i = 0; i < signedContextArr.length; i++) {
+            const signedContextEntity = createSignedContext(
+              event.transaction.hash.toHex(),
+              event.logIndex.toHex()
+            );
+
+            signedContextEntity.context = signedContextArr[i];
+            signedContextEntity.signer = Bytes.fromHexString(
+              getEvenHex(signers[i].toHex())
+            );
+
+            signedContextEntity.save();
+
+            signedContextEntities.push(signedContextEntity.id);
+          }
+        }
+      }
+
+      // Temp
+      const contextTakeOrder = new ContextEntity("ContextTakeOrderTemp");
+
+      contextTakeOrder.caller = sender;
+      contextTakeOrder.contract = callerContract;
+      contextTakeOrder.callingContext = callingContext;
+      contextTakeOrder.calculationsContext = calculationsContext;
+      contextTakeOrder.vaultInputsContext = vaultInputsContext;
+      contextTakeOrder.vaultOutputsContext = vaultOutputsContext;
+      contextTakeOrder.signedContext = signedContextEntities;
+
+      contextTakeOrder.emitter = createAccount(event.params.sender).id;
+      contextTakeOrder.timestamp = event.block.timestamp;
+      contextTakeOrder.transaction = createTransaction(
+        event.transaction.hash.toHex(),
+        event.block
+      ).id;
+
+      contextTakeOrder.save();
+    }
+  }
+}
 
 export function handleAddOrder(event: AddOrder): void {
   // Order parameter from event
@@ -420,7 +527,6 @@ export function handleClear(event: Clear): void {
   config.bobTokenVaultOutput = bobTokenVaultOutput;
   config.save();
 }
-export function handleContext(event: Context): void {}
 
 export function handleDeposit(event: Deposit): void {
   let tokenVault = createTokenVault(
@@ -482,6 +588,7 @@ export function handleRemoveOrder(event: RemoveOrder): void {
 }
 
 export function handleTakeOrder(event: TakeOrder): void {
+  log.info(`PAVE_A_0`, []);
   let orderEntity = createTakeOrderConfig(event.transaction.hash.toHex());
   orderEntity.sender = createAccount(event.params.sender).id;
   orderEntity.order = createOrder(
@@ -545,6 +652,34 @@ export function handleTakeOrder(event: TakeOrder): void {
   ).id;
   orderEntity.emitter = createAccount(event.params.sender).id;
   orderEntity.timestamp = event.block.timestamp;
+
+  // Adding the context
+  const contextTakeOrder = ContextEntity.load("ContextTakeOrderTemp");
+  if (contextTakeOrder) {
+    const contextEntity = createContextEntity(
+      event.transaction.hash.toHex(),
+      event.logIndex.toHex()
+    );
+
+    contextEntity.caller = contextTakeOrder.caller;
+    contextEntity.contract = contextTakeOrder.contract;
+    contextEntity.callingContext = contextTakeOrder.callingContext;
+    contextEntity.calculationsContext = contextTakeOrder.calculationsContext;
+    contextEntity.vaultInputsContext = contextTakeOrder.vaultInputsContext;
+    contextEntity.vaultOutputsContext = contextTakeOrder.vaultOutputsContext;
+    contextEntity.signedContext = contextTakeOrder.signedContext;
+
+    contextEntity.emitter = contextTakeOrder.emitter;
+    contextEntity.timestamp = contextTakeOrder.timestamp;
+    contextEntity.transaction = contextTakeOrder.transaction;
+
+    orderEntity.context = contextEntity.id;
+
+    contextEntity.save();
+
+    store.remove("ContextEntity", "ContextTakeOrderTemp");
+  }
+
   orderEntity.save();
 
   // Updating Balance

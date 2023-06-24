@@ -371,7 +371,6 @@ type ContextEntity implements Event @entity {
 type SignedContext @entity {
   id: ID!
   signer: Bytes!
-  signature: Bytes!
   context: [BigInt!]
 }
 
