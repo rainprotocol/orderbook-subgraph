@@ -674,7 +674,7 @@ export function handleTakeOrder(event: TakeOrder): void {
 
     contextEntity.save();
 
-    store.remove("ContextEntity", "ContextTakeOrderTemp");
+    // store.remove("ContextEntity", "ContextTakeOrderTemp");
   }
 
   takeOrderEntity.save();
