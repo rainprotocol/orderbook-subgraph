@@ -597,8 +597,8 @@ export function handleTakeOrder(event: TakeOrder): void {
   takeOrderEntity.input = event.params.input;
   takeOrderEntity.inputDisplay = toDisplay(
     event.params.input,
-    event.params.config.order.validInputs[
-      event.params.config.inputIOIndex.toI32()
+    event.params.config.order.validOutputs[
+      event.params.config.outputIOIndex.toI32()
     ].token.toHexString()
   );
   // takeOrderEntity.inputDisplay = toDisplay(
@@ -607,13 +607,13 @@ export function handleTakeOrder(event: TakeOrder): void {
   //     event.params.config.outputIOIndex.toI32()
   //   ].token.toHexString()
   // );
-  
+
   takeOrderEntity.output = event.params.output;
 
   takeOrderEntity.outputDisplay = toDisplay(
     event.params.output,
-    event.params.config.order.validOutputs[
-      event.params.config.outputIOIndex.toI32()
+    event.params.config.order.validInputs[
+      event.params.config.inputIOIndex.toI32()
     ].token.toHexString()
   );
   // takeOrderEntity.outputDisplay = toDisplay(
