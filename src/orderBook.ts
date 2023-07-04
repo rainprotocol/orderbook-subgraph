@@ -588,70 +588,58 @@ export function handleRemoveOrder(event: RemoveOrder): void {
 }
 
 export function handleTakeOrder(event: TakeOrder): void {
-  log.info(`PAVE_A_0`, []);
-  let orderEntity = createTakeOrderConfig(event.transaction.hash.toHex());
-  orderEntity.sender = createAccount(event.params.sender).id;
-  orderEntity.order = createOrder(
+  let takeOrderEntity = createTakeOrderConfig(event.transaction.hash.toHex());
+  takeOrderEntity.sender = createAccount(event.params.sender).id;
+
+  takeOrderEntity.order = createOrder(
     changetype<ClearAliceStruct>(event.params.config.order)
   ).id;
-  orderEntity.input = event.params.input;
-  orderEntity.inputDisplay = toDisplay(
+
+  takeOrderEntity.input = event.params.input;
+  takeOrderEntity.inputDisplay = toDisplay(
     event.params.input,
     event.params.config.order.validOutputs[
       event.params.config.outputIOIndex.toI32()
     ].token.toHexString()
   );
-  orderEntity.output = event.params.output;
-  orderEntity.outputDisplay = toDisplay(
+
+  takeOrderEntity.output = event.params.output;
+  takeOrderEntity.outputDisplay = toDisplay(
     event.params.output,
     event.params.config.order.validInputs[
       event.params.config.inputIOIndex.toI32()
     ].token.toHexString()
   );
 
-  // let multiplier = BDtoBIMultiplier(
-  //   orderEntity.inputDisplay,
-  //   orderEntity.outputDisplay
-  // );
-
-  // let input = BigInt.fromString(
-  //   orderEntity.inputDisplay.times(multiplier.toBigDecimal()).toString()
-  // );
-  // let output = BigInt.fromString(
-  //   orderEntity.outputDisplay.times(multiplier.toBigDecimal()).toString()
-  // );
-
-  // let GCD = gcd(input, output);
-
-  // let inputRatio = input.div(GCD).toBigDecimal();
-  // let outputRatio = output.div(GCD).toBigDecimal();
-
-  if (orderEntity.outputDisplay != BigDecimal.zero()) {
-    orderEntity.IORatio = orderEntity.inputDisplay.div(
-      orderEntity.outputDisplay
+  if (takeOrderEntity.outputDisplay != BigDecimal.zero()) {
+    takeOrderEntity.IORatio = takeOrderEntity.inputDisplay.div(
+      takeOrderEntity.outputDisplay
     );
   } else {
-    orderEntity.IORatio = BigDecimal.zero();
+    takeOrderEntity.IORatio = BigDecimal.zero();
   }
 
-  orderEntity.inputIOIndex = event.params.config.inputIOIndex;
-  orderEntity.outputIOIndex = event.params.config.outputIOIndex;
-  orderEntity.inputToken = createToken(
-    event.params.config.order.validInputs[
-      event.params.config.inputIOIndex.toI32()
-    ].token
-  ).id;
-  orderEntity.outputToken = createToken(
+  takeOrderEntity.inputIOIndex = event.params.config.inputIOIndex;
+  takeOrderEntity.outputIOIndex = event.params.config.outputIOIndex;
+
+  takeOrderEntity.inputToken = createToken(
     event.params.config.order.validOutputs[
       event.params.config.outputIOIndex.toI32()
     ].token
   ).id;
-  orderEntity.transaction = createTransaction(
+
+  takeOrderEntity.outputToken = createToken(
+    event.params.config.order.validInputs[
+      event.params.config.inputIOIndex.toI32()
+    ].token
+  ).id;
+
+  takeOrderEntity.transaction = createTransaction(
     event.transaction.hash.toHex(),
     event.block
   ).id;
-  orderEntity.emitter = createAccount(event.params.sender).id;
-  orderEntity.timestamp = event.block.timestamp;
+  takeOrderEntity.emitter = createAccount(event.params.sender).id;
+  takeOrderEntity.timestamp = event.block.timestamp;
 
   // Adding the context
   const contextTakeOrder = ContextEntity.load("ContextTakeOrderTemp");
@@ -673,14 +661,14 @@ export function handleTakeOrder(event: TakeOrder): void {
     contextEntity.timestamp = contextTakeOrder.timestamp;
     contextEntity.transaction = contextTakeOrder.transaction;
 
-    orderEntity.context = contextEntity.id;
+    takeOrderEntity.context = contextEntity.id;
 
     contextEntity.save();
 
     store.remove("ContextEntity", "ContextTakeOrderTemp");
   }
 
-  orderEntity.save();
+  takeOrderEntity.save();
 
   // Updating Balance
 

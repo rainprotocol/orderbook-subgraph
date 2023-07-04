@@ -93,7 +93,6 @@ type IO @entity {
 # Updated whenever an Withdraw event occurs
 type Vault @entity {
   id: ID! #{vaultId}-{owner}
-
   vaultId: BigInt!
 
   "The owner of this Vault"
@@ -275,6 +274,7 @@ type TakeOrderEntity implements Event @entity {
   id: ID! # Hash of ((TakeOrder.config))
   sender: Account!
   order: Order!
+
   "The input amount from the perspective of sender"
   input: BigInt!
   inputDisplay: BigDecimal!
@@ -286,13 +286,16 @@ type TakeOrderEntity implements Event @entity {
   "IO Ratio"
   IORatio: BigDecimal!
 
-  "The index of the input token in order to match with the take order output."
-  inputIOIndex: BigInt! # index of input token for Input Token Array
-  "The index of the output token in `order` to match with the take order input."
-  outputIOIndex: BigInt! # index of output token for Output Token Array
-  inputToken: ERC20! # TakeOrder.config.order.validInputs[TakeOrder.config.inputIOIndex].token
-  outputToken: ERC20! # TakeOrder.config.order.validOutputs[TakeOrder.config.outputIOIndex].token
-  #
+  "The index of the input token in order to match with the take order output"
+  inputIOIndex: BigInt!
+  "The index of the output token in order to match with the take order input."
+  outputIOIndex: BigInt!
+
+  "Input token from the perspective of the order taker"
+  inputToken: ERC20!
+  "Output token from the perspective of the order taker"
+  outputToken: ERC20!
+
   # Event fields
   transaction: Transaction!
   emitter: Account!

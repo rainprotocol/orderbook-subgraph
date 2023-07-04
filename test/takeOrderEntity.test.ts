@@ -23,6 +23,7 @@ import {
   TakeOrderConfigStruct,
   TakeOrderEvent,
   TakeOrdersConfigStruct,
+  WithdrawConfigStruct,
 } from "../typechain/contracts/orderbook/OrderBook";
 import { getEventArgs, waitForSubgraphToBeSynced } from "./utils";
 import { FetchResult } from "apollo-fetch";
@@ -151,6 +152,7 @@ describe("TakeOrderEntity", () => {
     });
 
     const tokenAAliceBalanceWithdrawn = await tokenA.balanceOf(alice.address);
+
     assert(tokenAAliceBalanceWithdrawn.eq(amountA));
 
     // Subgraph check
@@ -162,9 +164,9 @@ describe("TakeOrderEntity", () => {
       const { sender, config, input, output } = takeOrderEvents[i];
 
       const { order, inputIOIndex, outputIOIndex } = config;
-      const inputToken = `${order.validInputs[inputIOIndex.toNumber()].token}`;
+      const inputToken = `${order.validOutputs[inputIOIndex.toNumber()].token}`;
       const outputToken = `${
-        order.validOutputs[outputIOIndex.toNumber()].token
+        order.validInputs[outputIOIndex.toNumber()].token
       }`;
 
       const query = `{
@@ -317,20 +319,6 @@ describe("TakeOrderEntity", () => {
       orderBook
     )) as Array<TakeOrderEvent["args"]>;
 
-    // const contextEvents = (await getEvents(
-    //   txTakeOrders,
-    //   "Context",
-    //   orderBook
-    // )) as Array<ContextEvent["args"]>;
-
-    // console.log("Sender: ", txTakeOrders.from);
-    // console.log("OB: ", orderBook.address);
-    // console.log("goodSigner: ", goodSigner.address);
-    // ///
-    // console.log("=========== event");
-    // console.log(contextEvents[0].sender);
-    // console.log(JSON.stringify(contextEvents[0].context, null, 2));
-
     const tokenAAliceBalance = await tokenA.balanceOf(alice.address);
     const tokenBAliceBalance = await tokenB.balanceOf(alice.address);
     const tokenABobBalance = await tokenA.balanceOf(bob.address);
@@ -359,10 +347,10 @@ describe("TakeOrderEntity", () => {
       const { sender, config, input, output } = takeOrderEvents[i];
 
       const { order, inputIOIndex, outputIOIndex } = config;
-      const inputToken = `${order.validInputs[inputIOIndex.toNumber()].token}`;
-      const outputToken = `${
+      const inputToken = `${
         order.validOutputs[outputIOIndex.toNumber()].token
       }`;
+      const outputToken = `${order.validInputs[inputIOIndex.toNumber()].token}`;
 
       const query = `{
         takeOrderEntity (id: "${takeOrderEntity_ID}") {
