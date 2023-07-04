@@ -590,7 +590,6 @@ export function handleRemoveOrder(event: RemoveOrder): void {
 export function handleTakeOrder(event: TakeOrder): void {
   let takeOrderEntity = createTakeOrderConfig(event.transaction.hash.toHex());
   takeOrderEntity.sender = createAccount(event.params.sender).id;
-
   takeOrderEntity.order = createOrder(
     changetype<ClearAliceStruct>(event.params.config.order)
   ).id;
@@ -665,7 +664,7 @@ export function handleTakeOrder(event: TakeOrder): void {
 
     contextEntity.save();
 
-    store.remove("ContextEntity", "ContextTakeOrderTemp");
+    // store.remove("ContextEntity", "ContextTakeOrderTemp");
   }
 
   takeOrderEntity.save();
