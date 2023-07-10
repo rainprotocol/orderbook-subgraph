@@ -23,12 +23,13 @@ import {
   TakeOrderConfigStruct,
   TakeOrderEvent,
   TakeOrdersConfigStruct,
+  WithdrawConfigStruct,
 } from "../typechain/contracts/orderbook/OrderBook";
 import { getEventArgs, waitForSubgraphToBeSynced } from "./utils";
 import { FetchResult } from "apollo-fetch";
 
 //TODO: Add more tests with more takeOrders and the new entities
-describe("TakeOrderEntity", () => {
+describe.only("TakeOrderEntity", () => {
   let tokenA: ReserveToken18;
   let tokenB: ReserveToken18;
 
@@ -39,7 +40,7 @@ describe("TakeOrderEntity", () => {
     await tokenB.initialize();
   });
 
-  it("should query TakeOrderEntity correctly after take an order", async function () {
+  it.only("should query TakeOrderEntity correctly after take an order", async function () {
     const [, alice, bob] = signers;
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
@@ -151,6 +152,7 @@ describe("TakeOrderEntity", () => {
     });
 
     const tokenAAliceBalanceWithdrawn = await tokenA.balanceOf(alice.address);
+
     assert(tokenAAliceBalanceWithdrawn.eq(amountA));
 
     // Subgraph check
@@ -162,10 +164,20 @@ describe("TakeOrderEntity", () => {
       const { sender, config, input, output } = takeOrderEvents[i];
 
       const { order, inputIOIndex, outputIOIndex } = config;
-      const inputToken = `${order.validInputs[inputIOIndex.toNumber()].token}`;
+      const inputToken = `${order.validOutputs[inputIOIndex.toNumber()].token}`;
       const outputToken = `${
-        order.validOutputs[outputIOIndex.toNumber()].token
+        order.validInputs[outputIOIndex.toNumber()].token
       }`;
+
+      assert(
+        inputToken.toLowerCase() ==
+          takeOrdersConfigStruct.input.toString().toLowerCase()
+      );
+
+      assert(
+        outputToken.toLowerCase() ==
+          takeOrdersConfigStruct.output.toString().toLowerCase()
+      );
 
       const query = `{
         takeOrderEntity (id: "${takeOrderEntity_ID}") {
@@ -194,6 +206,9 @@ describe("TakeOrderEntity", () => {
       assert.equal(data.outputIOIndex, outputIOIndex.toString());
 
       assert.equal(data.sender.id, sender.toLowerCase());
+      assert.equal(data.inputToken.id, inputToken.toLowerCase());
+      assert.equal(data.outputToken.id, outputToken.toLowerCase());
+
       assert.equal(data.inputToken.id, inputToken.toLowerCase());
       assert.equal(data.outputToken.id, outputToken.toLowerCase());
     }
@@ -317,20 +332,6 @@ describe("TakeOrderEntity", () => {
       orderBook
     )) as Array<TakeOrderEvent["args"]>;
 
-    // const contextEvents = (await getEvents(
-    //   txTakeOrders,
-    //   "Context",
-    //   orderBook
-    // )) as Array<ContextEvent["args"]>;
-
-    // console.log("Sender: ", txTakeOrders.from);
-    // console.log("OB: ", orderBook.address);
-    // console.log("goodSigner: ", goodSigner.address);
-    // ///
-    // console.log("=========== event");
-    // console.log(contextEvents[0].sender);
-    // console.log(JSON.stringify(contextEvents[0].context, null, 2));
-
     const tokenAAliceBalance = await tokenA.balanceOf(alice.address);
     const tokenBAliceBalance = await tokenB.balanceOf(alice.address);
     const tokenABobBalance = await tokenA.balanceOf(bob.address);
@@ -359,10 +360,10 @@ describe("TakeOrderEntity", () => {
       const { sender, config, input, output } = takeOrderEvents[i];
 
       const { order, inputIOIndex, outputIOIndex } = config;
-      const inputToken = `${order.validInputs[inputIOIndex.toNumber()].token}`;
-      const outputToken = `${
+      const inputToken = `${
         order.validOutputs[outputIOIndex.toNumber()].token
       }`;
+      const outputToken = `${order.validInputs[inputIOIndex.toNumber()].token}`;
 
       const query = `{
         takeOrderEntity (id: "${takeOrderEntity_ID}") {

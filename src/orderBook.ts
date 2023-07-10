@@ -590,12 +590,12 @@ export function handleRemoveOrder(event: RemoveOrder): void {
 }
 
 export function handleTakeOrder(event: TakeOrder): void {
-  log.info(`PAVE_A_0`, []);
   let takeOrderEntity = createTakeOrderConfig(event.transaction.hash.toHex());
   takeOrderEntity.sender = createAccount(event.params.sender).id;
   takeOrderEntity.order = createOrder(
     changetype<ClearAliceStruct>(event.params.config.order)
   ).id;
+
   takeOrderEntity.input = event.params.input;
   takeOrderEntity.inputDisplay = toDisplay(
     event.params.input,
@@ -603,27 +603,14 @@ export function handleTakeOrder(event: TakeOrder): void {
       event.params.config.outputIOIndex.toI32()
     ].token.toHexString()
   );
-  // takeOrderEntity.inputDisplay = toDisplay(
-  //   event.params.input,
-  //   event.params.config.order.validOutputs[
-  //     event.params.config.outputIOIndex.toI32()
-  //   ].token.toHexString()
-  // );
 
   takeOrderEntity.output = event.params.output;
-
   takeOrderEntity.outputDisplay = toDisplay(
     event.params.output,
     event.params.config.order.validInputs[
       event.params.config.inputIOIndex.toI32()
     ].token.toHexString()
   );
-  // takeOrderEntity.outputDisplay = toDisplay(
-  //   event.params.output,
-  //   event.params.config.order.validInputs[
-  //     event.params.config.inputIOIndex.toI32()
-  //   ].token.toHexString()
-  // );
 
   if (takeOrderEntity.outputDisplay != BigDecimal.zero()) {
     takeOrderEntity.IORatio = takeOrderEntity.inputDisplay.div(
@@ -635,16 +622,19 @@ export function handleTakeOrder(event: TakeOrder): void {
 
   takeOrderEntity.inputIOIndex = event.params.config.inputIOIndex;
   takeOrderEntity.outputIOIndex = event.params.config.outputIOIndex;
+
   takeOrderEntity.inputToken = createToken(
-    event.params.config.order.validInputs[
-      event.params.config.inputIOIndex.toI32()
-    ].token
-  ).id;
-  takeOrderEntity.outputToken = createToken(
     event.params.config.order.validOutputs[
       event.params.config.outputIOIndex.toI32()
     ].token
   ).id;
+
+  takeOrderEntity.outputToken = createToken(
+    event.params.config.order.validInputs[
+      event.params.config.inputIOIndex.toI32()
+    ].token
+  ).id;
+
   takeOrderEntity.transaction = createTransaction(
     event.transaction.hash.toHex(),
     event.block
