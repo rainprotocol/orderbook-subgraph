@@ -86,6 +86,7 @@ type IO @entity {
   vaultId: BigInt!
   order: Order!
   tokenVault: TokenVault!
+  index: Int!
 }
 
 # Created and updated whenever an AddOrder event occurs
